@@ -1,0 +1,22 @@
+# Karpathy layer 1 — raw sources are immutable. Both source types are TRACKED here:
+#   - code repos    -> raw/code/<slug> as git SUBMODULES (this demo defaults to
+#                      `acquire: submodule`); the committed gitlink + .gitmodules IS the pin.
+#   - articles/docs -> raw/sources/ committed as the curated source of truth.
+# So raw/ is NOT ignored. Only regenerable build artifacts are:
+
+# Build artifacts: SCIP indexes, packets, reconcile state. Regenerable, never committed.
+.cache/
+
+# Claude Code reads skills only from .claude/skills/, but the canonical copy lives in
+# .agents/skills/ (shared with Codex + Antigravity). We COMMIT the .claude/skills/ symlinks
+# (relative links into .agents/skills/) so this template works in Claude Code out of the box —
+# a repo generated from it has the skills wired up with no install step. Still one source of
+# truth: the symlinks just point at .agents/skills/. (Windows users may need git symlink support.)
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# NOTE: wiki/ is the PRODUCT here and IS committed (unlike in the wikify-repo tool repo).
