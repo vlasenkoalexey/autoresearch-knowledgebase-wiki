@@ -1,0 +1,3 @@
+[submodule "raw/code/autoresearch"]
+	path = raw/code/autoresearch
+	url = https://github.com/karpathy/autoresearch
