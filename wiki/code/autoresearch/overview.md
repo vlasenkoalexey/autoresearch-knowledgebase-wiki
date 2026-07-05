@@ -85,3 +85,5 @@ schedules until `TIME_BUDGET` → [`evaluate_bpb`](concepts/prepare.md) scores t
 - *"What's the concept table for this repo?"* → [index.md](index.md).
 - The autonomous-loop policy itself (branch tagging, `results.tsv`, keep/revert rules, "never stop") lives
   in the repo's `program.md`, surfaced under [doc-concepts/](doc-concepts/).
+- *"How does this generalize beyond LLM quality?"* → [wiki-driven autoresearch loop](../../topics/wiki-driven-autoresearch-loop.md)
+  compares this repo against a TPU-performance specialization of the same pattern.

@@ -1,3 +1,15 @@
 [submodule "raw/code/autoresearch"]
 	path = raw/code/autoresearch
 	url = https://github.com/karpathy/autoresearch
+[submodule "raw/code/ai-scientist-v2"]
+	path = raw/code/ai-scientist-v2
+	url = https://github.com/SakanaAI/AI-Scientist-v2
+[submodule "raw/code/rd-agent"]
+	path = raw/code/rd-agent
+	url = https://github.com/microsoft/RD-Agent
+[submodule "raw/code/pi-autoresearch-vkf"]
+	path = raw/code/pi-autoresearch-vkf
+	url = https://github.com/EricJahns/pi-autoresearch-vkf
+[submodule "raw/code/dgm"]
+	path = raw/code/dgm
+	url = https://github.com/jennyzzt/dgm
