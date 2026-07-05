@@ -3,7 +3,7 @@ title: DSTrace — the data-science exploration DAG and its ExpGen proposers
 type: concept
 provenance: mixed
 concept: rdagent-scenarios-data_science-proposal-exp_gen-base
-concepts: [agentic-tree-search, closed-loop-experiment-design, hypothesis-generation, research-development-loop]
+concepts: [closed-loop-experiment-design, research-development-loop]
 updated: 2026-07-04
 status: fresh
 ---

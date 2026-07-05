@@ -3,7 +3,7 @@ title: Hypothesis, Trace, and ExpGen — the Research phase's proposal machinery
 type: concept
 provenance: mixed
 concept: rdagent-core-proposal
-concepts: [hypothesis-generation, research-development-loop, closed-loop-experiment-design, agentic-tree-search]
+concepts: [research-development-loop, closed-loop-experiment-design]
 updated: 2026-07-04
 status: fresh
 ---

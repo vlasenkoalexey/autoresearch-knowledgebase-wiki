@@ -58,6 +58,31 @@ overwritten each round. Where RD-Agent's Trace and ai-scientist-v2's tree are sc
 pi-autoresearch-vkf's card store is scoped to the *project* (and, via `promote_to_global`, across projects) —
 closer to "retrieve-verified-claims-from-a-persistent-memory" than either of the other two.
 
+## A different axis: physical/behavioral vs. in-silico closed loops
+Every implementation above closes the loop over something that happens **inside a computer** — a training
+run, a code edit, a simulated benchmark episode — evaluated in seconds to hours and re-run as many times as
+compute allows. [**autora**](../code/autora/overview.md) (Automated Research Assistant) closes structurally
+the same four-step loop (hypothesize → implement → validate/evaluate → feed back) but over **physical or
+behavioral experiments**: its documented cycle — an *experimentalist* proposes the next experimental
+condition, an *experiment runner* executes it (either a synthetic ground-truth model, or a real human
+participant recruited via Prolific and served through Firebase), and a *theorist* fits an interpretable
+model to all data collected so far, feeding back into the next experimentalist call via one shared,
+immutably-updated `State` object. That is a materially different kind of "feed back": when the experiment
+runner is real (not synthetic), each cycle can cost days (recruitment, participant scheduling) rather than
+milliseconds, and "the outcome" is genuine behavioral data from a human, not a score computed on a machine.
+See [closed-loop-research-cycle](../code/autora/doc-concepts/closed-loop-research-cycle.md) for the full
+cycle and [state-and-delta-data-model](../code/autora/doc-concepts/state-and-delta-data-model.md) for its
+`State`/`Delta` mechanism — the direct counterpart to RD-Agent's `Trace`, ai-scientist-v2's `Journal`/tree,
+and pi-autoresearch-vkf's VKF card store as "what closes the loop."
+
+> [!inferred]
+> autora is listed here as a **documentation-level** instance of this concept, not a code-grounded one:
+> `AutoResearch/autora` is a namespace metapackage (its `pyproject.toml` pins ~20 separately-hosted sibling
+> packages) with no local implementation of the experimentalist/runner/theorist cycle to cite a symbol
+> from — see the silo's [overview](../code/autora/overview.md) for why it has zero `concepts/` pages and
+> is therefore not eligible for (and does not appear in) the auto-generated "grounded implementations"
+> list below.
+
 ## See also
 - [`research-development-loop`](research-development-loop.md) — the two-phase (Research/Development)
   structure that this feedback loop closes across.

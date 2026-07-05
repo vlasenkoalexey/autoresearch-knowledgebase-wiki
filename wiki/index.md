@@ -150,6 +150,29 @@ concept/catalog page and cite the catalog anchor; drop to the pinned source for 
   refuted claims across 12 of the 13 pages. This is the first grounded implementation of
   [`concepts/evolutionary-algorithm-discovery.md`](concepts/evolutionary-algorithm-discovery.md), which was
   previously paper-only.
+- [**autora**](code/autora/overview.md) — Automated Research Assistant: the scope-broadening silo, closing
+  the loop over **physical/behavioral** empirical experiments rather than in-silico ones. An
+  experimentalist proposes the next experimental condition, an experiment runner executes it (a synthetic
+  ground-truth model, or a real human participant via Prolific/Firebase), and a theorist fits an
+  interpretable model whose predictions shape the next proposal — all three threaded through one shared,
+  immutably-updated `State`. No paper source page — ingested as a repo only.
+  `AutoResearch/autora` itself is a **namespace metapackage**: its `pyproject.toml` pins ~20
+  separately-published sibling packages (`autora-core`, `autora-experimentalist-*`, `autora-theorist-*`,
+  `autora-experiment-runner-*`) behind one `pip install autora`, and its own indexed surface is 16 trivial
+  symbols (mkdocs doc-site helpers + one import-smoke test) — so this silo has **0 code concept pages**
+  and instead 5 doc-concept pages extracted from the project's own docs. Pinned @ `fc5cc3ea21`. Answers:
+  the cycle itself
+  ([closed-loop-research-cycle](code/autora/doc-concepts/closed-loop-research-cycle.md)), the shared
+  State/Delta object that keeps the three roles independently pluggable
+  ([state-and-delta-data-model](code/autora/doc-concepts/state-and-delta-data-model.md)), and the three
+  component families
+  ([experimentalists](code/autora/doc-concepts/experimentalist-component-family.md),
+  [experiment runners](code/autora/doc-concepts/experiment-runner-component-family.md),
+  [theorists](code/autora/doc-concepts/theorist-component-family.md)). Has **zero code concept pages** (by
+  design — `wikify prepare` correctly found 0 groundable concepts) so it does not appear in `wikify
+  connect`'s automated "grounded implementations" lists; instead it is connected via hand-written hub
+  prose on [`concepts/closed-loop-experiment-design.md`](concepts/closed-loop-experiment-design.md) — the
+  only vocabulary concept it plausibly implements, and only at the documentation level.
 
 ## Cross-paper concepts (optional)
 Host vocabulary (`wiki/concepts/<key>.md`), wired by the `wikify-connect-repo` skill: each concept page

@@ -19,3 +19,6 @@
 [submodule "raw/code/openevolve"]
 	path = raw/code/openevolve
 	url = https://github.com/codelion/openevolve
+[submodule "raw/code/autora"]
+	path = raw/code/autora
+	url = https://github.com/AutoResearch/autora
