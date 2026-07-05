@@ -9,6 +9,9 @@ status: fresh
 ---
 # AgenticSystem — the coding agent DGM evolves (and that edits itself)
 
+<!-- connect:up:begin -->
+> **Cross-repo concept:** part of [self-referential-code-rewriting](../../../concepts/self-referential-code-rewriting.md) across this wiki's repos.
+<!-- connect:up:end -->
 ## Overview
 `coding_agent.py`'s `AgenticSystem` is the frozen foundation-model harness that both solves SWE-bench/Polyglot
 issues *and* — when pointed at its own source tree — edits the very tools/prompts/orchestration that make up

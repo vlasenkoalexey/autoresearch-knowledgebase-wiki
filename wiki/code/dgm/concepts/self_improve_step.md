@@ -9,6 +9,9 @@ status: fresh
 ---
 # self_improve — one self-referential edit-and-validate attempt
 
+<!-- connect:up:begin -->
+> **Cross-repo concept:** part of [self-referential-code-rewriting](../../../concepts/self-referential-code-rewriting.md) across this wiki's repos.
+<!-- connect:up:end -->
 ## Overview
 `self_improve_step.py` implements the unit of work `DGM_outer.py`'s generation loop dispatches once per
 selected `(parent_commit, entry)` pair: given one archive parent, diagnose a concrete problem for the coding

@@ -2,7 +2,7 @@
 slug: rd-agent
 commit: 4f9ecb005881cddc08df0124a2e894c018007679
 scip_tool: scip-python
-updated: 2026-07-04
+updated: 2026-07-05
 ---
 
 # rd-agent internals wiki

@@ -1,6 +1,6 @@
 ---
 title: wikify — top-level catalog
-updated: 2026-07-04
+updated: 2026-07-05
 ---
 
 # Wikify — repository wikis
@@ -9,6 +9,6 @@ updated: 2026-07-04
 |---|---|---|
 | ai-scientist-v2 | [ai-scientist-v2](ai-scientist-v2/index.md) | connected (5 concepts) |
 | autoresearch | [autoresearch](autoresearch/index.md) | standalone |
-| dgm | [dgm](dgm/index.md) | standalone |
+| dgm | [dgm](dgm/index.md) | connected (4 concepts) |
 | pi-autoresearch-vkf | [pi-autoresearch-vkf](pi-autoresearch-vkf/index.md) | connected (7 concepts) |
 | rd-agent | [rd-agent](rd-agent/index.md) | connected (10 concepts) |

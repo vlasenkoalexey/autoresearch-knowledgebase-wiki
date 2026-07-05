@@ -220,3 +220,54 @@ single optimize/ideate config fork; `closed-loop-experiment-design` extends the 
 a 3-way axis (live tree state vs. recorded Trace vs. durable trust-gated VKF card store);
 `hypothesis-generation` contrasts Co-Scientist/ai-scientist-v2's LLM-mediated generation against
 pi-autoresearch-vkf's deterministic contradiction/transfer/composition mining over already-verified memory.
+
+## [2026-07-05] ingest-code | dgm
+Ingested [jennyzzt/dgm](https://github.com/jennyzzt/dgm) @ `a565fd2d1d` (the **Darwin Gödel Machine**,
+arXiv:2505.22954) as a submodule under `raw/code/dgm` — the 5th code silo, and the implementation behind the
+paper source [`sources/darwin-godel-machine.md`](sources/darwin-godel-machine.md). 371 documentable symbols
+across 37 modules (100% represented, 10/10 classes); 9 concept pages + 3 README doc-concepts. Auto-discovery
+seeded 7 concepts; added 2 config seed concepts (`DGM_outer`, `self_improve_step`) so the archive/parent-
+selection loop and the self-referential edit-and-validate step each got a deep page. Concept pages: the outer
+archive loop (`DGM_outer` — stepping-stone `score_child_prop` parent sampling + `keep_all` archive growth),
+one self-improvement attempt (`self_improve_step` — diagnose → container-run the agent to self-edit →
+re-score on SWE-bench/Polyglot), the coding agent being evolved (`coding_agent`), model-agnostic tool-calling
+(`llm_withtools`), the diagnosis-prompt builder (`prompts-self_improvement_prompt`), the bash tool
+(`tools-bash`), per-framework test-log parsing (`utils-swe_log_parsers`), the Polyglot Docker image pipeline
+(`polyglot-docker_build`), and offline lineage plotting (`analysis-visualize_archive`). Finalize green on the
+second pass (first pass hit 4 lint errors — 2 `filter_compiled` citations outside the DGM_outer subgraph,
+de-linked to plain-name references; 2 uncited Mechanism steps, re-cited to in-subgraph `main`/`choose_selfimproves`
+and one demoted to `[!inferred]`). Adversarial verify (parallel, all 120 load-bearing claims across 9 pages)
+refuted + fixed 3: `DGM_outer`'s `best` method sorts *ascending* (takes the lowest scorers — an apparent
+upstream bug, now noted in-page rather than described as "top scorers"); `polyglot-docker_build` over-claimed
+that `build_instance_image` cascade-removes downstream images (only `get_env_configs_to_build` does, via
+`find_dependent_images`); `analysis-visualize_archive` claimed lineage edges are colored by score direction,
+but the source renders all edges black (the color code is commented out — only edge *thickness* distinguishes
+the lineage). Manually confirmed the load-bearing `coding_agent` claim that `self.self_improve` is nearly
+inert (its only use is forcing `instance_id='dgm'` at coding_agent.py:84; `forward()` never branches on it —
+the self-referential effect comes entirely from `self_improve_step.py` pointing the agent at DGM's own repo).
+Registered in [`index.md`](index.md). Connect step next (5th silo).
+
+## [2026-07-05] connect | 2 concepts wired to dgm (5th silo joined)
+Connected `dgm` (5th silo) via `wikify connect --apply self-referential-code-rewriting,evolutionary-self-improvement`
+— using dgm's own `concepts:` frontmatter tags (applied during synthesis). Both are DGM-exclusive concepts (no
+other silo implements them, correctly): [self-referential-code-rewriting](concepts/self-referential-code-rewriting.md)
+→ 3 dgm pages (coding_agent, self_improve_step, prompts-self_improvement_prompt);
+[evolutionary-self-improvement](concepts/evolutionary-self-improvement.md) → 1 dgm page (DGM_outer). Up-link
+blocks written on all 4 dgm silo pages. Added hub prose to both concept pages above their auto blocks:
+`evolutionary-self-improvement` now lays out the four-silo ladder ratchet (autoresearch) → single-node
+hill-climb (pi-autoresearch-vkf) → best-first tree (ai-scientist-v2) → genuine growing archive (dgm), noting
+only DGM keeps every viable variant selectable; `self-referential-code-rewriting` pins down where the
+self-reference actually lives (the agent's self_improve flag is nearly inert — the effect is an emergent
+wiring effect in self_improve_step pointing the generic agent at its own code) and notes even DGM leaves its
+own outer archive loop human-owned. Deliberately did NOT connect `mechanism-level-self-improvement` (no dgm
+page tagged it — DGM's outer loop is fixed, not itself optimized, so the tag was correctly withheld) nor any
+of the 5 already-connected concepts (dgm implements none of them — not a candidate for any). **Known `--exclude`/
+up-link-regeneration bug hit again (differently):** the `--apply` run regenerated ALL silos' up-link blocks
+from page frontmatter tags, re-adding `agentic-tree-search` + `hypothesis-generation` up-links to two rd-agent
+pages (rdagent-core-proposal, rdagent-scenarios-data_science-proposal-exp_gen-base) even though those two
+concepts' down-blocks deliberately exclude rd-agent (the 2026-07-04 pass kept them selective). Since the
+regeneration keys off the page's `concepts:` tags rather than actual down-block membership, it re-introduced
+the exact links the prior pass had pruned. Restored both rd-agent up-link blocks to their committed
+2-concept state (`closed-loop-experiment-design`, `research-development-loop`) and re-ran `wikify finalize
+rd-agent` (green, 6226 symbols 100%). ai-scientist-v2 and pi-autoresearch-vkf up-links were untouched (their
+tags match their down-block membership). dgm finalize re-confirmed green after connect (371 symbols, 100%).

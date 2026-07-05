@@ -9,6 +9,9 @@ status: fresh
 ---
 # The DGM outer loop — archive and stepping-stone parent selection
 
+<!-- connect:up:begin -->
+> **Cross-repo concept:** part of [evolutionary-self-improvement](../../../concepts/evolutionary-self-improvement.md) across this wiki's repos.
+<!-- connect:up:end -->
 ## Overview
 `DGM_outer.py` is the process a user actually launches (`python DGM_outer.py`) and the part of the system
 that is **not** rewritten by the agent: it owns the archive of every coding-agent variant the run has

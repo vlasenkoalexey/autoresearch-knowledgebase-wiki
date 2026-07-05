@@ -102,6 +102,22 @@ concept/catalog page and cite the catalog anchor; drop to the pinned source for 
   ([autoresearchExtension](code/pi-autoresearch-vkf/concepts/extensions-pi-autoresearch-vkf-index.ts.md)). The
   tree-search comparison is written up in
   [`concepts/agentic-tree-search.md`](concepts/agentic-tree-search.md).
+- [**dgm**](code/dgm/overview.md) — the **Darwin Gödel Machine**: a self-improving coding agent that rewrites
+  its own tools/prompts/orchestration and keeps each self-edit only if the edited agent scores better on
+  SWE-bench/Polyglot, searched via a **growing archive** of variants (stepping-stone parent selection) rather
+  than a single hill-climbing lineage. The implementation behind the paper
+  [`sources/darwin-godel-machine.md`](sources/darwin-godel-machine.md). Pinned @ `a565fd2d1d`; 371 symbols
+  across 37 modules (100% represented, 10/10 classes), 9 concept + 3 doc-concept pages. Answers: how the
+  archive + stepping-stone parent sampling works ([DGM_outer](code/dgm/concepts/DGM_outer.md)), what one
+  self-referential edit-and-validate attempt does — diagnose, run the agent in a container to edit itself,
+  re-score on the benchmark ([self_improve_step](code/dgm/concepts/self_improve_step.md)), the agent being
+  evolved and where "self-referential" actually happens ([coding_agent](code/dgm/concepts/coding_agent.md)),
+  the model-agnostic tool-calling ([llm_withtools](code/dgm/concepts/llm_withtools.md)), and how the
+  improvement target is chosen from the agent's own failures + own code
+  ([prompts-self_improvement_prompt](code/dgm/concepts/prompts-self_improvement_prompt.md)). The
+  archive-vs-single-lineage and self-referential contrasts against the other silos are written up in
+  [`concepts/evolutionary-self-improvement.md`](concepts/evolutionary-self-improvement.md) and
+  [`concepts/self-referential-code-rewriting.md`](concepts/self-referential-code-rewriting.md).
 
 ## Cross-paper concepts (optional)
 Host vocabulary (`wiki/concepts/<key>.md`), wired by the `wikify-connect-repo` skill: each concept page

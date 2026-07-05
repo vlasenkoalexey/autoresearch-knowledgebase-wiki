@@ -2,13 +2,15 @@
 slug: dgm
 commit: a565fd2d1dca504ef5104a7cc0f3bdc4ab9b4fd2
 scip_tool: scip-python
-updated: 2026-07-04
+updated: 2026-07-05
 ---
 
 # dgm internals wiki
 
 Generated, grounded wiki. Start from a concept (or an area); drill into cited symbols.
 The commit pin above is the single source version for every page in this silo.
+
+**Start here → [Overview](overview.md)** — the whole system in one page (main concepts + core diagrams + a map of the wiki).
 
 ## Concepts (deep)
 | Concept | Page | Status |
@@ -22,6 +24,12 @@ The commit pin above is the single source version for every page in this silo.
 | self_improve_step | [self_improve_step](concepts/self_improve_step.md) | fresh |
 | tools-bash | [tools-bash](concepts/tools-bash.md) | fresh |
 | utils-swe_log_parsers | [utils-swe_log_parsers](concepts/utils-swe_log_parsers.md) | fresh |
+
+## Doc-derived concepts
+Concepts extracted from the project's own docs (README / `docs/`), grounded to the symbol catalog. The source docs stay in place.
+- [benchmark-evaluation-swe-and-polyglot](doc-concepts/benchmark-evaluation-swe-and-polyglot.md)
+- [running-the-dgm](doc-concepts/running-the-dgm.md)
+- [safety-untrusted-model-code](doc-concepts/safety-untrusted-model-code.md)
 
 ## Coverage
 Two tiers: **concept pages** explain mechanisms deeply (selective); **module

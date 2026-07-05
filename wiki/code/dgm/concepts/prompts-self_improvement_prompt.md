@@ -9,6 +9,9 @@ status: fresh
 ---
 # self_improvement_prompt — diagnosing the agent from its own failures and its own code
 
+<!-- connect:up:begin -->
+> **Cross-repo concept:** part of [self-referential-code-rewriting](../../../concepts/self-referential-code-rewriting.md) across this wiki's repos.
+<!-- connect:up:end -->
 ## Overview
 `prompts/self_improvement_prompt.py` builds the prompt pair the diagnosis model sees *before* any
 self-edit happens: not just "here is what the coding agent got wrong," but "here is what the coding agent
