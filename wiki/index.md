@@ -134,6 +134,22 @@ concept/catalog page and cite the catalog anchor; drop to the pinned source for 
   [article_opt](code/bilevel-autoresearch/concepts/domains-article_opt-mechanism_research.md)). Its
   mechanism-level (not artifact-level, not self-referential) place among the other self-improvement silos is
   in [`concepts/mechanism-level-self-improvement.md`](concepts/mechanism-level-self-improvement.md).
+- [**openevolve**](code/openevolve/overview.md) — the open-source reimplementation of DeepMind's AlphaEvolve
+  recipe; the implementation behind the paper [`sources/alphaevolve.md`](sources/alphaevolve.md). Pinned @
+  `39db2f6da8`; 2582 symbols across 219 modules (100% represented, 177/177 classes), 13 concept + 4
+  doc-concept pages. Answers: how the main evolution loop ties the three pillars together
+  ([OpenEvolve.run](code/openevolve/concepts/openevolve-controller.md)), the MAP-Elites × island-model
+  population database that decides which candidates survive
+  ([ProgramDatabase](code/openevolve/concepts/openevolve-database.md)), the weighted LLM ensemble that
+  proposes mutations ([LLMEnsemble](code/openevolve/concepts/openevolve-llm-ensemble.md)) and the
+  prompt assembly that narrates evolutionary state into text
+  ([PromptSampler](code/openevolve/concepts/openevolve-prompt-sampler.md)), how an LLM's text diff becomes a
+  child program ([SEARCH/REPLACE](code/openevolve/concepts/openevolve-utils-code_utils.md)), and the
+  cascade evaluator that scores candidates cheaply-first
+  ([Evaluator](code/openevolve/concepts/openevolve-evaluator.md)). Adversarial verify caught and fixed 29
+  refuted claims across 12 of the 13 pages. This is the first grounded implementation of
+  [`concepts/evolutionary-algorithm-discovery.md`](concepts/evolutionary-algorithm-discovery.md), which was
+  previously paper-only.
 
 ## Cross-paper concepts (optional)
 Host vocabulary (`wiki/concepts/<key>.md`), wired by the `wikify-connect-repo` skill: each concept page

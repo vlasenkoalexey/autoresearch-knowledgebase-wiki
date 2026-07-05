@@ -16,3 +16,6 @@
 [submodule "raw/code/bilevel-autoresearch"]
 	path = raw/code/bilevel-autoresearch
 	url = https://github.com/EdwardOptimization/Bilevel-Autoresearch
+[submodule "raw/code/openevolve"]
+	path = raw/code/openevolve
+	url = https://github.com/codelion/openevolve

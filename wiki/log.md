@@ -327,3 +327,74 @@ rd-agent` (green, 6226 symbols 100%) and `wikify finalize bilevel-autoresearch` 
 Verified via before/after snapshots: the only up-link changes are bilevel's 9 new blocks; every other silo
 (ai-scientist-v2, pi-autoresearch-vkf, dgm, autoresearch) is byte-identical, and rd-agent's two pages match
 their pre-ingest state.
+
+## [2026-07-05] ingest-code | openevolve (7th silo)
+Ingested `openevolve` (https://github.com/codelion/openevolve, an open-source reimplementation of DeepMind's
+AlphaEvolve) as a git submodule at `raw/code/openevolve`, pinned @ `39db2f6da8`. `wikify prepare` indexed 2590
+symbols (scip-python; the vendored scip-typescript/rust-analyzer passes found no TS/Rust of consequence to
+index) and auto-seeded 13 concept packets by centrality — synthesized in parallel: the main evolution loop
+([openevolve-controller](code/openevolve/concepts/openevolve-controller.md)), the MAP-Elites × island-model
+population database ([openevolve-database](code/openevolve/concepts/openevolve-database.md)), process-based
+parallelism ([openevolve-process_parallel](code/openevolve/concepts/openevolve-process_parallel.md)), the
+weighted LLM ensemble ([openevolve-llm-ensemble](code/openevolve/concepts/openevolve-llm-ensemble.md)) and its
+OpenAI-compatible client ([openevolve-llm-openai](code/openevolve/concepts/openevolve-llm-openai.md)), prompt
+assembly ([openevolve-prompt-sampler](code/openevolve/concepts/openevolve-prompt-sampler.md)) and its template
+registry ([openevolve-prompt-templates](code/openevolve/concepts/openevolve-prompt-templates.md)), the
+SEARCH/REPLACE diff mechanism ([openevolve-utils-code_utils](code/openevolve/concepts/openevolve-utils-code_utils.md)),
+the cascade evaluator ([openevolve-evaluator](code/openevolve/concepts/openevolve-evaluator.md)) and its
+metrics+artifacts contract ([openevolve-evaluation_result](code/openevolve/concepts/openevolve-evaluation_result.md)),
+lineage logging ([openevolve-evolution_trace](code/openevolve/concepts/openevolve-evolution_trace.md)),
+configuration ([openevolve-config](code/openevolve/concepts/openevolve-config.md)), and the library entry point
+([openevolve-api](code/openevolve/concepts/openevolve-api.md)). Wrote [`overview.md`](code/openevolve/overview.md)
+and, from the README, 4 doc-concept pages: [EVOLVE-BLOCK markers](code/openevolve/doc-concepts/evolve-block-markers.md),
+[reproducibility via hash-derived seeding](code/openevolve/doc-concepts/reproducibility-seeding.md),
+[system message design](code/openevolve/doc-concepts/system-message-design.md), and the
+[artifacts feedback loop](code/openevolve/doc-concepts/artifacts-feedback-loop.md).
+
+`wikify finalize` needed two repair rounds (a wrong `LLMModelConfig.models` anchor → `LLMConfig.models` in two
+pages; several Mechanism/Entry-points items missing an in-subgraph citation) before going green: 2582 symbols
+across 219 modules, 100% represented (177/177 classes), 267 deep (10.3%). Adversarial verify then checked ~231
+load-bearing claims across all 13 concept pages (13 parallel reviewers) and refuted-and-fixed 29 of them —
+notably a reversed operation order in `ProgramDatabase.add` (best-tracking was documented as running before
+`_enforce_population_limit`; the source explicitly does it after, to avoid evicting a program before its
+best-tracking update), four backwards/incomplete claims in the controller page (sampling wrongly attributed to
+the worker process instead of the main-process `_submit_iteration`; "archive" conflated with "population" as
+the eviction cap; `current_island` wrongly credited with driving round-robin submission; a reversed
+close-tracer-then-pick-best diagram ordering), and a causal claim in process_parallel.md that attributed child
+island re-pinning to migration staleness when the source comment names a different bug (issue #391, fallback
+sampling) — `migrate_programs` never actually moves a program's own island, it only copies. Re-ran `wikify
+finalize openevolve` after all edits: still green, same coverage.
+
+Registered in [`index.md`](index.md) (Code repos section) and connected `evolutionary-algorithm-discovery`
+(previously paper-only, now grounded for the first time) — see the following connect entry.
+
+## [2026-07-05] connect | 1 concept wired to openevolve (7th silo joined)
+`wikify connect` showed only one vocabulary concept with candidates in openevolve:
+[evolutionary-algorithm-discovery](concepts/evolutionary-algorithm-discovery.md), 7/13 pages, 1 repo — no
+other already-connected concept (`agentic-tree-search`, `closed-loop-experiment-design`,
+`hypothesis-generation`, `research-development-loop`, `mechanism-level-self-improvement`,
+`self-referential-code-rewriting`, `end-to-end-discovery-pipeline`, `evolutionary-self-improvement`) listed
+openevolve as a candidate, so skipped `--refresh` entirely (nothing for it to pick up) and ran only
+`wikify connect --apply evolutionary-algorithm-discovery` — wired 7 openevolve pages (controller, database,
+evaluator, llm-ensemble, process_parallel, prompt-sampler, utils-code_utils) into the concept's down-block
+and gave each an up-link. This is the concept's first grounded implementation; it was paper-only before
+(cited only through AlphaEvolve's white paper). Added a "Grounded in code" hub paragraph above the auto
+block, tying the three Core Mechanism pillars to real openevolve symbols (island-partitioned MAP-Elites in
+`ProgramDatabase`, the weighted `LLMEnsemble` mutation operator + SEARCH/REPLACE splicing, the cascade
+`Evaluator`) and positioning it against the wiki's other self-improvement mechanisms: openevolve evolves an
+arbitrary user-supplied target program (unlike DGM's self-referential agent-rewrite or bilevel's
+mechanism-rewrite), with a population database closer in spirit to DGM's growing archive than to bilevel's
+single-active-mechanism ratchet.
+
+**Known up-link-regeneration bug hit again (rd-agent) — even on a single-concept `--apply`, not just
+`--refresh`.** The apply call regenerated up-link blocks for unrelated pages from their frontmatter
+`concepts:` tags, re-adding `agentic-tree-search` + `hypothesis-generation` to the same two rd-agent pages
+(`rdagent-core-proposal`, `rdagent-scenarios-data_science-proposal-exp_gen-base`) whose down-blocks
+deliberately exclude them. Down-blocks on `agentic-tree-search.md`/`hypothesis-generation.md` were
+unaffected (no rd-agent entries reappeared there) — only the two pages' own up-link lines regressed. Fix:
+manually restored both up-link blocks to their committed 2-concept state
+(`closed-loop-experiment-design`, `research-development-loop`), re-ran `wikify finalize rd-agent` (green,
+6226 symbols 100%, 592/592 classes). Verified via before/after snapshot diff against a pre-ingest baseline:
+the only changes anywhere in `wiki/code/*/concepts/*.md` up-link blocks are openevolve's 7 new ones; every
+other silo (ai-scientist-v2, pi-autoresearch-vkf, dgm, bilevel-autoresearch, autoresearch, and rd-agent
+post-repair) is byte-identical to its pre-ingest state.
