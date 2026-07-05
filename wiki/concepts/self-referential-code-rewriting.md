@@ -69,7 +69,9 @@ to make self-referential too.
 
 ## See also
 - [`evolutionary-self-improvement`](evolutionary-self-improvement.md)
+- [`mechanism-level-self-improvement`](mechanism-level-self-improvement.md) — the narrower target Bilevel Autoresearch implements (contrasted above; *not* self-referential)
 - [`../sources/darwin-godel-machine.md`](../sources/darwin-godel-machine.md)
+- [`../code/bilevel-autoresearch/overview.md`](../code/bilevel-autoresearch/overview.md) — the contrastive silo: its Level 2 rewrites the inner loop's mechanism but its own dialogue logic is fixed
 
 <!-- connect:auto:begin -->
 ## In this wiki's repos

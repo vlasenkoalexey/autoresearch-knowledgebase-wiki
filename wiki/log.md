@@ -271,3 +271,59 @@ the exact links the prior pass had pruned. Restored both rd-agent up-link blocks
 2-concept state (`closed-loop-experiment-design`, `research-development-loop`) and re-ran `wikify finalize
 rd-agent` (green, 6226 symbols 100%). ai-scientist-v2 and pi-autoresearch-vkf up-links were untouched (their
 tags match their down-block membership). dgm finalize re-confirmed green after connect (371 symbols, 100%).
+
+## [2026-07-05] ingest-code | bilevel-autoresearch
+Ingested `bilevel-autoresearch` (https://github.com/EdwardOptimization/Bilevel-Autoresearch) as the **6th
+code silo**, pinned @ `2010e958028fa13e5aacfe2bf73d65314ecdde65` (submodule under `raw/code/bilevel-autoresearch`).
+This is the implementation behind the already-summarized paper [`sources/bilevel-autoresearch.md`](sources/bilevel-autoresearch.md)
+(arXiv:2603.23420) — the **outer** autoresearch loop that wraps this wiki's `autoresearch` inner loop. `wikify
+prepare` indexed 5644 symbols (scip-python), auto-seeded 15 concepts from centrality (no config seeds). Wrote
+15 grounded concept pages + overview + 6 README doc-concepts. `wikify finalize` green on first pass (lint OK,
+100% coverage — 5644/5644 symbols across 118 modules, 427/427 classes; 118 catalog pages). Adversarial `wikify
+verify` ran over 185 load-bearing claims across the 15 pages (3 parallel review passes).
+Structure mirrors the paper's three levels: **Level 1** = the never-rewritten inner ratchet
+([core-inner_loop](code/bilevel-autoresearch/concepts/core-inner_loop.md)) with a hard inner→outer boundary
+([core-state](code/bilevel-autoresearch/concepts/core-state.md), `extract_from_inner` returns process stats but
+never the task artifact); **Level 1.5** = parameter-only adjustment
+([domains-train_opt-config](code/bilevel-autoresearch/concepts/domains-train_opt-config.md) /
+[outer](code/bilevel-autoresearch/concepts/domains-train_opt-outer.md), tagged `closed-loop-experiment-design`
+only — verified `outer.py` has zero references to Level 2); **Level 2** = code-generating mechanism research
+([core-base_mechanism_research](code/bilevel-autoresearch/concepts/core-base_mechanism_research.md) shared 4-round
+dialogue + [train_opt](code/bilevel-autoresearch/concepts/domains-train_opt-mechanism_research.md) /
+[article_opt](code/bilevel-autoresearch/concepts/domains-article_opt-mechanism_research.md) implementations),
+tagged `mechanism-level-self-improvement`. Two domains (train_opt = paper's GPT-pretraining val_bpb headline
+experiment; article_opt = no-GPU 5-stage article-revision demo) prove the `core/` bilevel skeleton is
+domain-agnostic. Deliberately did NOT tag `self-referential-code-rewriting` (Level 2's own dialogue logic is
+fixed/human-authored — only Level 1 is rewritten) or `evolutionary-self-improvement` (no archive — single active
+mechanism, generate-then-activate-or-revert, archive size 1), matching the paper's explicit contrasts.
+Registered in [`index.md`](index.md) (Code repos section + updated the paper-source line). Connect step next
+(6th silo joins).
+
+## [2026-07-05] connect | 2 concepts wired to bilevel-autoresearch (6th silo joined)
+Connected `bilevel-autoresearch` (6th silo) into the concept spine. Newly wired the headline concept
+[mechanism-level-self-improvement](concepts/mechanism-level-self-improvement.md) via
+`wikify connect --apply mechanism-level-self-improvement` — 4 bilevel pages (core-base_mechanism_research,
+domains-article_opt-cli, domains-article_opt-mechanism_research, domains-train_opt-mechanism_research), the
+only silo that implements it. Then `wikify connect --refresh` so the three already-connected concepts bilevel
+also tags picked up its pages: [closed-loop-experiment-design](concepts/closed-loop-experiment-design.md) +5
+bilevel pages, [hypothesis-generation](concepts/hypothesis-generation.md) +3, and
+[research-development-loop](concepts/research-development-loop.md) +1. Deliberately did NOT connect bilevel to
+[self-referential-code-rewriting](concepts/self-referential-code-rewriting.md) or
+[evolutionary-self-improvement](concepts/evolutionary-self-improvement.md) — bilevel's Level 2 keeps one active
+mechanism (generate → import-validate → activate-or-revert, archive size 1) and its dialogue logic is fixed, so
+those pages stay dgm-only in their auto-blocks and contrast bilevel in prose (added a silo `See also` pointer +
+`mechanism-level-self-improvement` cross-link to each). Added a "Grounded in code" hub paragraph to the
+mechanism-level page above its auto-block, up-linking the bilevel silo overview and the `autoresearch` inner-loop
+overview (the fixed-floor ratchet it wraps).
+**Known up-link-regeneration bug hit again (rd-agent, as expected):** the `--refresh` regenerated all silos'
+up-links + down-blocks from frontmatter `concepts:` tags, re-adding `agentic-tree-search` + `hypothesis-generation`
+to the two rd-agent pages (rdagent-core-proposal, rdagent-scenarios-data_science-proposal-exp_gen-base) whose
+down-blocks deliberately exclude them. Fix: re-applied those two concepts with the exact-match excludes
+(`rd-agent/code/rd-agent/concepts/<page>.md`) to drop rd-agent from their down-blocks, then — because a
+single-concept `--apply` regenerates a page's up-link block from only that invocation's keys and so wiped the
+two pages' legitimate closed-loop/research-development up-links — manually restored both up-link blocks to their
+committed 2-concept state (`closed-loop-experiment-design`, `research-development-loop`). Re-ran `wikify finalize
+rd-agent` (green, 6226 symbols 100%) and `wikify finalize bilevel-autoresearch` (green, 5644 symbols 100%).
+Verified via before/after snapshots: the only up-link changes are bilevel's 9 new blocks; every other silo
+(ai-scientist-v2, pi-autoresearch-vkf, dgm, autoresearch) is byte-identical, and rd-agent's two pages match
+their pre-ingest state.

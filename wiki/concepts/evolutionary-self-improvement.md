@@ -71,8 +71,10 @@ variant selectable.
 
 ## See also
 - [`self-referential-code-rewriting`](self-referential-code-rewriting.md)
+- [`mechanism-level-self-improvement`](mechanism-level-self-improvement.md) — Bilevel Autoresearch's Level 2 as the "archive size 1" mechanism-level case contrasted above
 - [`../sources/darwin-godel-machine.md`](../sources/darwin-godel-machine.md)
 - [`../topics/autoresearch.md`](../topics/autoresearch.md)
+- [`../code/bilevel-autoresearch/overview.md`](../code/bilevel-autoresearch/overview.md) — the contrastive silo: one active mechanism, generate-then-activate-or-revert, no growing archive
 
 <!-- connect:auto:begin -->
 ## In this wiki's repos

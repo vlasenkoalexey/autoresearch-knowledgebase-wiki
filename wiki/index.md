@@ -31,7 +31,7 @@ One summary page (`wiki/sources/<paper>.md`) per ingested paper; the raw source 
 - [**RD-Agent (Microsoft)**](sources/rd-agent.md) — a Research→Development LLM-agent loop for autonomous data science, SOTA on MLE-Bench (35.1% Any-Medal Rate), with a quant-finance specialization (RD-Agent(Q)) that co-optimizes trading factors and models via a contextual-bandit scheduler.
 - [**Darwin Gödel Machine**](sources/darwin-godel-machine.md) — self-referential coding agent that rewrites its own tools/prompts/workflow, keeping each self-edit only if it empirically improves SWE-bench/Polyglot score, searched via a growing archive of variants rather than a single hill-climbing lineage.
 - [**AlphaEvolve (DeepMind)**](sources/alphaevolve.md) — Gemini-powered evolutionary coding agent: an LLM proposes code diffs, automated evaluators score them, best survive; discovered a 48-multiplication 4×4 complex matrix-multiply (first sub-Strassen result in 56 years), improved ~50 open math problems, and auto-tuned Google's Borg scheduler, Gemini kernels, TPU circuits, and XLA IR. **Bridges autoresearch and auto-optimization.**
-- [**Bilevel Autoresearch**](sources/bilevel-autoresearch.md) — an outer autoresearch loop that reads this wiki's `autoresearch` inner loop's runner code and traces, then generates and injects new Python search mechanisms (Tabu Search, multi-armed bandit, orthogonal design-of-experiments) at runtime, achieving ~5x over the inner loop alone while parameter-level tuning alone gave no reliable gain. Codebase queued for ingest.
+- [**Bilevel Autoresearch**](sources/bilevel-autoresearch.md) — an outer autoresearch loop that reads this wiki's `autoresearch` inner loop's runner code and traces, then generates and injects new Python search mechanisms (Tabu Search, multi-armed bandit, orthogonal design-of-experiments) at runtime, achieving ~5x over the inner loop alone while parameter-level tuning alone gave no reliable gain. Codebase ingested as a code silo — internals at [`code/bilevel-autoresearch/overview.md`](code/bilevel-autoresearch/overview.md).
 
 ## Topics
 Synthesized prose pages (`wiki/topics/<topic>.md`) — methods, concepts, entities, comparisons that span
@@ -118,6 +118,22 @@ concept/catalog page and cite the catalog anchor; drop to the pinned source for 
   archive-vs-single-lineage and self-referential contrasts against the other silos are written up in
   [`concepts/evolutionary-self-improvement.md`](concepts/evolutionary-self-improvement.md) and
   [`concepts/self-referential-code-rewriting.md`](concepts/self-referential-code-rewriting.md).
+- [**bilevel-autoresearch**](code/bilevel-autoresearch/overview.md) — the **outer** autoresearch loop that
+  wraps this wiki's `autoresearch` inner loop; the implementation behind the paper
+  [`sources/bilevel-autoresearch.md`](sources/bilevel-autoresearch.md). Pinned @ `2010e95802`; 5644 symbols
+  across 118 modules (100% represented, 427/427 classes), 15 concept + 6 doc-concept pages. Answers: the
+  never-rewritten Level-1 inner loop ([InnerLoopController](code/bilevel-autoresearch/concepts/core-inner_loop.md))
+  and the inner→outer information boundary that hides the task artifact
+  ([extract_from_inner](code/bilevel-autoresearch/concepts/core-state.md)); Level 1.5's parameter-only
+  freeze/unfreeze control surface ([SearchConfig](code/bilevel-autoresearch/concepts/domains-train_opt-config.md),
+  [outer loop](code/bilevel-autoresearch/concepts/domains-train_opt-outer.md)); and the load-bearing **Level 2**
+  that writes and injects new Python search-mechanism code — the shared 4-round Explore→Critique→Specify→Generate
+  dialogue ([BaseMechanismResearcher](code/bilevel-autoresearch/concepts/core-base_mechanism_research.md)) and
+  its two domain implementations that generate + dynamically import + activate-or-revert a mechanism
+  ([train_opt](code/bilevel-autoresearch/concepts/domains-train_opt-mechanism_research.md),
+  [article_opt](code/bilevel-autoresearch/concepts/domains-article_opt-mechanism_research.md)). Its
+  mechanism-level (not artifact-level, not self-referential) place among the other self-improvement silos is
+  in [`concepts/mechanism-level-self-improvement.md`](concepts/mechanism-level-self-improvement.md).
 
 ## Cross-paper concepts (optional)
 Host vocabulary (`wiki/concepts/<key>.md`), wired by the `wikify-connect-repo` skill: each concept page

@@ -76,6 +76,11 @@ Grounded implementations of **closed-loop-experiment-design** across the ingeste
 - [rd-agent](../code/rd-agent/concepts/rdagent-core-proposal.md) — Hypothesis, Trace, and ExpGen — the Research phase's proposal machinery
 - [rd-agent](../code/rd-agent/concepts/rdagent-scenarios-data_science-proposal-exp_gen-base.md) — DSTrace — the data-science exploration DAG and its ExpGen proposers
 - [rd-agent](../code/rd-agent/concepts/rdagent-utils-workflow-loop.md) — LoopBase — the generic async engine behind Algorithm 1's R&D loop
+- [bilevel-autoresearch](../code/bilevel-autoresearch/concepts/core-inner_loop.md) — core.inner_loop — the unmodified Level 1 propose/train/evaluate/keep-discard loop
+- [bilevel-autoresearch](../code/bilevel-autoresearch/concepts/core-state.md) — core.state — inner/outer state and the inner→outer information boundary
+- [bilevel-autoresearch](../code/bilevel-autoresearch/concepts/domains-article_opt-outer.md) — article_opt outer loop (Level 1.5)
+- [bilevel-autoresearch](../code/bilevel-autoresearch/concepts/domains-train_opt-outer.md) — TrainOuterLoop — the Level 1.5 search-strategy loop
+- [bilevel-autoresearch](../code/bilevel-autoresearch/concepts/domains-train_opt-runner.md) — TrainRunner — the Level 1 inner loop
 - [pi-autoresearch-vkf](../code/pi-autoresearch-vkf/concepts/extensions-pi-autoresearch-vkf-cards.ts.md) — VKF cards — the trust-lifecycle memory model
 - [pi-autoresearch-vkf](../code/pi-autoresearch-vkf/concepts/extensions-pi-autoresearch-vkf-index.ts.md) — The tool spine — autoresearchExtension and the autoresearch loop's control surface
 - [pi-autoresearch-vkf](../code/pi-autoresearch-vkf/concepts/extensions-pi-autoresearch-vkf-scoring.ts.md) — Idea scoring & explore/exploit balancing (`scoring.ts`)

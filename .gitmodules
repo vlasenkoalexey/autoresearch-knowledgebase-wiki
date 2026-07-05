@@ -13,3 +13,6 @@
 [submodule "raw/code/dgm"]
 	path = raw/code/dgm
 	url = https://github.com/jennyzzt/dgm
+[submodule "raw/code/bilevel-autoresearch"]
+	path = raw/code/bilevel-autoresearch
+	url = https://github.com/EdwardOptimization/Bilevel-Autoresearch

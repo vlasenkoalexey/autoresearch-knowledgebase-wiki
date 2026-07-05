@@ -93,4 +93,5 @@ Grounded implementations of **research-development-loop** across the ingested re
 - [rd-agent](../code/rd-agent/concepts/rdagent-utils-workflow-loop.md) — LoopBase — the generic async engine behind Algorithm 1's R&D loop
 - [pi-autoresearch-vkf](../code/pi-autoresearch-vkf/concepts/extensions-pi-autoresearch-vkf-config.ts.md) — Session config (`ResearchConfig`) — the optimize/ideate switch and explore/exploit defaults
 - [pi-autoresearch-vkf](../code/pi-autoresearch-vkf/concepts/extensions-pi-autoresearch-vkf-index.ts.md) — The tool spine — autoresearchExtension and the autoresearch loop's control surface
+- [bilevel-autoresearch](../code/bilevel-autoresearch/concepts/core-base_mechanism_research.md) — core.base_mechanism_research — the shared Level 2 Explore→Critique→Specify→Generate protocol
 <!-- connect:auto:end -->
