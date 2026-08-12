@@ -36,7 +36,7 @@ If you have a recent xprof bucket-attribution for the current frontier, use this
 | `idle` > 10% (collective waits) | Collective bound | [FSDP / collective optimization](#fsdp--collective-optimization) | async collectives, reduce TP, switch DP→FSDP |
 | Step time growing over steps | HBM thrash / memory pressure | [VMEM / scratch memory](#vmem--scratch-memory), [HBM transient memory + I/O](#hbm-transient-memory--io) | adamw_bf16 state, AC=full, rematerialization |
 | `dynamic-slice` / `update-slice` dominant | KV cache decode (inference-only) | [Profile-driven attribution](#profile-driven-attribution) | larger decode batch, splash attention, StaticCache + jit |
-| Many recompiles per step | Dynamic shapes (data-dependent shape paths) | [torch.compile + scan-over-layers](#torchcompile--scan-over-layers) | static shapes, padding, pre-compile all shapes |
+| Many recompiles per step | Dynamic shapes (data-dependent shape paths) | [torch.compile + scan-over-layers](#torchcompile--scan-over-layers) | static shapes, padding, pre-compile all shapes, `TPU_DEFER_NEVER=1` to debug |
 | Rematerialization time > 15% in HLO Op Stats | Over-remat | [Activation checkpointing (AC)](#activation-checkpointing-ac) | reduce remat policy if HBM headroom > 20% |
 | Looking for a kernel by function (attention, MoE, GLU, SSM, CE, norm, matmul, collective) | n/a — discovery, not diagnosis | [Pallas kernel patterns](#pallas-kernel-patterns-lane-wide) → **Kernel catalog** | walk the cross-repo catalog before writing a new kernel |
 | Long-context training (≥16k seq) where dense attention is HBM-bound | seq×seq attention transient | [Splash attention](#splash-attention) | NSA (DeepSeek native sparse, 64k @ FA2-speed); Henry Mko v5e TPU port; or splash with custom mask |
@@ -174,6 +174,7 @@ v7x XPK naming is inferred from the 2-TC-per-chip pattern (matches v5p / v4); **
 
 **TPU-stack notes**:
 - Orbax is JAX-side; **PT/XLA SPMD has separate checkpointing** (`torch.distributed.checkpoint` + `SPMDSavePlanner/SPMDLoadPlanner`). They don't interoperate.
+- For torch_tpu (eager-mode): no native Orbax integration; uses standard PyTorch `save_state_dict`.
 
 ## Canonical reference stacks
 
@@ -185,9 +186,10 @@ These are the shared substrates a hypothesis is most often grounded in. Cite the
 | **tokamax** | [codebases/tokamax.md](codebases/tokamax.md) | Pallas-on-Mosaic-TPU kernel suite. Splash attention, linear+softmax CE loss, fused ops. Heuristics encode per-generation block sizes (v5p `v=512`, v6e `v=2048`). |
 | **tpu-recipes** | [codebases/tpu-recipes.md](codebases/tpu-recipes.md) | Google's curated tuning recipes per model family. |
 | **scaling-book** | [codebases/scaling-book.md](codebases/scaling-book.md) | "How to Scale Your Model" (DeepMind / JAX-ML 2025). Canonical theory: roofline, sharding taxonomy, collective costs, FSDP↔TP↔PP trade-offs. 11 chapters individually ingested as sources. Note: 2025-02-04 — v6e and v7x not covered. |
-| **xprof-mcp** | [codebases/xprof-mcp.md](codebases/xprof-mcp.md) | Diagnostic playbook: roofline, per-gen critical intensity, profile-signature → cause decision tree, tool invocation order. See [`sources/2026-xprof-mcp-tpu-optimization.md`](sources/2026-xprof-mcp-tpu-optimization.md) — the highest-density "what to check and why" doc in the wiki. |
+| **xprof-mcp** | [codebases/xprof-cli.md](codebases/xprof-cli.md) | Diagnostic playbook: roofline, per-gen critical intensity, profile-signature → cause decision tree, tool invocation order. See [`sources/2026-xprof-mcp-tpu-optimization.md`](sources/2026-xprof-mcp-tpu-optimization.md) — the highest-density "what to check and why" doc in the wiki. |
 | **ultrascale-playbook** | [sources/2025-ultrascale-playbook.md](sources/2025-ultrascale-playbook.md) | Hugging Face multi-thousand-GPU training playbook. FSDP / TP / PP / sequence-parallelism systematically with formulas. GPU-primary but the parallelism logic transfers. |
 | **JAX** | [codebases/jax.md](codebases/jax.md) | JAX runtime + compiler (XLA). The default lane for high-performance TPU work. |
+| **torch_tpu** | [codebases/torch_tpu.md](codebases/torch_tpu.md) | PyTorch-on-TPU via Mosaic. Eager-mode + `torch.compile(backend="tpu")` paths. |
 | **torchtitan** | [codebases/torchtitan.md](codebases/torchtitan.md) | PyTorch reference training stack used by this autoresearch project's experiments. |
 | **pallas-forge** | [codebases/pallas-forge.md](codebases/pallas-forge.md) | Pallas kernel infrastructure (autotuning, autotune-result caching). |
 | **ejkernel** | [codebases/ejkernel.md](codebases/ejkernel.md) | Pallas kernel collection. |
@@ -213,12 +215,12 @@ The algebra under FSDP, TP, EP, CP, PP — and the choice of mesh axis placement
 - [sources/2025-ultrascale-playbook.md](sources/2025-ultrascale-playbook.md) — HF distributed training playbook (parallelism formulas, sequence parallelism).
 
 **Mechanism — partitioning systems**:
-- [sources/2021-gspmd-paper.md](sources/2021-gspmd-paper.md) — **GSPMD**, the foundational annotation+propagation SPMD partitioner backing pjit/jit, T5X, MaxText, Paxml, and PT/XLA SPMD. 50-62% MFU on 2048 TPUv3 cores at trillion-param scale.
+- [sources/2021-gspmd-paper.md](sources/2021-gspmd-paper.md) — **GSPMD**, the foundational annotation+propagation SPMD partitioner backing pjit/jit, T5X, MaxText, Paxml, PT/XLA SPMD, and torch_tpu. 50-62% MFU on 2048 TPUv3 cores at trillion-param scale.
 - [sources/2024-partir-paper.md](sources/2024-partir-paper.md) — **PartIR**, DeepMind's schedule-based compositional partitioner. Decouples partitioning from model code; performance parity with GSPMD.
 - [sources/2026-shardy-overview.md](sources/2026-shardy-overview.md) — **Shardy**, OpenXLA's modern MLIR-based successor combining GSPMD propagation + PartIR composition. Enable with `jax.config.update("jax_use_shardy_partitioner", True)`. Backend currently routes through GSPMD; MLIR-native partitioner planned.
 - [sources/2023-jax-jep-14273-shard-map.md](sources/2023-jax-jep-14273-shard-map.md) — `shard_map` JEP, the canonical design doc for manual-mode per-device collectives. Rank-preserving, eager-by-default, composable with `jit`.
 - [sources/2026-jax-explicit-sharding.md](sources/2026-jax-explicit-sharding.md) — **explicit sharding** ("sharding-in-types"). Deterministic propagation at the JAX type level; `jax.typeof(x)` queryable inside JIT. Errors on ambiguity rather than silently choosing.
-- [sources/2026-pytorch-xla-spmd-user-guide.md](sources/2026-pytorch-xla-spmd-user-guide.md) — **PT/XLA SPMD**, GSPMD-on-PyTorch (lazy tensor + `mark_sharding`). Reference impl: `torchprime`.
+- [sources/2026-pytorch-xla-spmd-user-guide.md](sources/2026-pytorch-xla-spmd-user-guide.md) — **PT/XLA SPMD**, GSPMD-on-PyTorch (lazy tensor + `mark_sharding`). Distinct from torch_tpu eager-mode (per memory `torch_tpu_not_pytorch_xla`). Reference impl: `torchprime`.
 
 **Mechanism — sequence parallelism (long context)**:
 - [sources/2023-ring-attention-paper.md](sources/2023-ring-attention-paper.md) — foundational Liu et al. ICLR 2024 Ring Attention; blockwise distributed attention with KV rotation; **device-count× sequence length**.
@@ -232,6 +234,7 @@ The algebra under FSDP, TP, EP, CP, PP — and the choice of mesh axis placement
 - [concepts/sequence-parallelism.md](concepts/sequence-parallelism.md), [concepts/ring-attention.md](concepts/ring-attention.md)
 - [concepts/all-gather.md](concepts/all-gather.md), [concepts/all-reduce.md](concepts/all-reduce.md), [concepts/reduce-scatter.md](concepts/reduce-scatter.md)
 - [concepts/multi-shard-sequence-parallel-correction.md](concepts/multi-shard-sequence-parallel-correction.md)
+- [concepts/spmd-safe-fat-collectives.md](concepts/spmd-safe-fat-collectives.md) — torch_tpu eager-mode decorator that lets collectives fuse with surrounding compute.
 - [concepts/in-graph-xla-collective-lowering.md](concepts/in-graph-xla-collective-lowering.md)
 - [concepts/shardy.md](concepts/shardy.md), [concepts/sharding-in-types.md](concepts/sharding-in-types.md), [concepts/jax-experimental-layout.md](concepts/jax-experimental-layout.md) — new partitioner + explicit-sharding + layout-control concept stubs.
 
@@ -344,7 +347,7 @@ How you read a profile and turn it into a candidate hypothesis. This is the diag
 - [sources/2026-xprof-perf-counters.md](sources/2026-xprof-perf-counters.md)
 - [sources/2026-xprof-capturing-profiles.md](sources/2026-xprof-capturing-profiles.md), [sources/2026-xprof-jax-profiling.md](sources/2026-xprof-jax-profiling.md), [sources/2026-xprof-pytorch-xla-profiling.md](sources/2026-xprof-pytorch-xla-profiling.md)
 - [sources/2025-scaling-book-ch9-profiling.md](sources/2025-scaling-book-ch9-profiling.md)
-- **PyTorch-side diagnostic complements** (when torchax / PT/XLA experiments need compile-events or runtime-trace analysis):
+- **PyTorch-side diagnostic complements** (when torch_tpu / torchax / PT/XLA experiments need compile-events or runtime-trace analysis):
   - [codebases/tlparse.md](codebases/tlparse.md) — PT2 compile event parser (recompiles, guards, specializations). Canonical for "why is `torch.compile` recompiling?" / "why didn't it compile?"
   - [codebases/holistic-trace-analysis.md](codebases/holistic-trace-analysis.md) — Kineto runtime trace analyzer (temporal breakdown, comm-compute overlap %, idle-time attribution). GPU-side analog of xprof.
   - [sources/2025-ezyang-state-of-torch-compile.md](sources/2025-ezyang-state-of-torch-compile.md) — Edward Yang's mid-2025 status; canonical reference for PT2 maturity + gotchas.
@@ -522,6 +525,7 @@ How you read a profile and turn it into a candidate hypothesis. This is the diag
 - [concepts/collective-bucketing-prefetch.md](concepts/collective-bucketing-prefetch.md)
 - [concepts/latency-hiding-scheduler.md](concepts/latency-hiding-scheduler.md)
 - [concepts/in-graph-xla-collective-lowering.md](concepts/in-graph-xla-collective-lowering.md)
+- [concepts/spmd-safe-fat-collectives.md](concepts/spmd-safe-fat-collectives.md) — torch_tpu eager-mode lever for collective+compute fusion
 - [concepts/simple-fsdp-graph-trainer.md](concepts/simple-fsdp-graph-trainer.md)
 - [concepts/graph-trainer-fx-passes.md](concepts/graph-trainer-fx-passes.md)
 - [sources/2025-scaling-book-ch3-sharding.md](sources/2025-scaling-book-ch3-sharding.md) — FSDP = AllGather(params, fwd) + ReduceScatter(grads, bwd)
@@ -531,6 +535,7 @@ How you read a profile and turn it into a candidate hypothesis. This is the diag
 - **lbs-doubling at FSDP ≥ 8 is the universal cheap win**: amortizes per-step collectives over more tokens. Typical lift ~+0.9 pp MFU per doubling, until you saturate HBM at the ~1.5× current-frontier batch wall.
 - Collective-matmul mode V2 (`xla_tpu_*_collective_matmul_mode=none`) is the modern default on libtpu v160+; V1 boolean flags are deprecated.
 - Async collective fusion flags are XLA defaults on libtpu v160+ — forcing them ON is a no-op.
+- On torch_tpu lane, eager dispatch is functionally synchronous; FX-level bucketing/reorder is perf-neutral. C++ lane changes are needed for actual overlap. `@spmd_safe` is the eager-mode lever that allows collective+compute fusion inside a decorated region.
 
 **Generic refuted-pattern principles**:
 - ❌ **Pure DP / ZeRO-1 (replicated weights, no FSDP shard)** — GSPMD replicated-matmul codegen inflates conv-fusion bytes; refutes universally on multi-chip slices.
@@ -705,9 +710,11 @@ Long-form compilation strategies that reduce HLO-module count and compile time.
 - **Scan over identical layers reduces compile time from O(N) to O(1)** — `jax.lax.scan`, torchprime `scan_layers`, torchax `ScannedModule`, Flax `nn.scan`. For a 48-layer transformer, this is dramatic.
 - Scan **complicates 2D sharding propagation in the backward pass** — OOM during backward with scan enabled typically needs explicit `shard_as` annotations.
 - **Dynamic shapes trigger a fresh compile per shape** — XLA compiles per unique input shape. Variable-length batches or growing KV caches each recompile. Pre-compile + warmup all expected shapes before steady-state.
+- `kDeferAndFuse` (torch_tpu default) accumulates ops until a materialization trigger (`.item()`, `.cpu()`, `print(tensor)`, data-dependent branches) forces a sync. `TPU_DEFER_NEVER=1` for debugging — errors point at the offending op, not the materialization site.
 - **JAX compilation cache** requires `JAX_COMPILATION_CACHE_DIR=gs://...` PLUS `JAX_PERSISTENT_CACHE_MIN_COMPILE_TIME_SECS=1` AND `JAX_PERSISTENT_CACHE_MIN_ENTRY_SIZE_BYTES=0` to hit on rerun for non-jit_train_step modules.
 
 **Generic refuted-pattern principles**:
+- ❌ **`torch.compile` on a model with collective ops AND no `@spmd_safe`** — TpuBackend's `_disallow_collective_ops_in_graph` graph-breaks at every collective; you get many small modules instead of fewer big ones, defeating the point.
 - ❌ **Value-dependent branches** (e.g. `if tensor.sum() > 0: ...`) — break fusion. Shape-dependent on static shapes (`tensor.shape[0] == 1`) is fine.
 - ❌ **Compile-time-aware autotune without filtering** — burns wall time on configs that compile-OOM at scale. Pre-filter by predicted VMEM budget.
 
@@ -757,14 +764,14 @@ See the [TPU hardware envelope](#tpu-hardware-envelope-essential-without-lookup)
 - [concepts/xla-dump-flags.md](concepts/xla-dump-flags.md)
 - [concepts/xla-fusion.md](concepts/xla-fusion.md)
 - [concepts/hlo-dumping-and-diffing.md](concepts/hlo-dumping-and-diffing.md)
-- [sources/2022-pathways-paper.md](sources/2022-pathways-paper.md) — the orchestration system whose error-propagation design motivates `xla_tpu_use_enhanced_launch_barrier=true`. This project sets `false` (single-pod runs don't need Pathways' error propagation; the barrier deadlocks the FSDP all-gather on multi-host).
+- [sources/2022-pathways-paper.md](sources/2022-pathways-paper.md) — the orchestration system whose error-propagation design motivates `xla_tpu_use_enhanced_launch_barrier=true`. This project sets `false` (single-pod runs don't need Pathways' error propagation; the barrier deadlocks the FSDP all-gather under torch_tpu multi-host).
 - MaxText canonical: `raw/code/maxtext/benchmarks/xla_flags_library.py`.
 
 **Universal multi-host stack (libtpu v160+)**:
 ```
 LIBTPU_INIT_ARGS=
   --xla_tpu_scoped_vmem_limit_kib=81920          # capped to hw cap on v5p
-  --xla_tpu_use_enhanced_launch_barrier=false    # mandatory on multi-host
+  --xla_tpu_use_enhanced_launch_barrier=false    # mandatory on torch_tpu multi-host
   --xla_tpu_reduce_scatter_collective_matmul_mode=none  # V2 enum, beats default
   --xla_tpu_all_gather_collective_matmul_mode=none
 ```
@@ -775,7 +782,7 @@ LIBTPU_INIT_ARGS=
 - `LAYOUT_FOR_ALL_REDUCE_SCATTER` / `REDUCE_SCATTER_FUSION` — layout pin for RS
 - `HOST_OFFLOAD_FLAGS` — host-offload friendly scheduler features
 - `DISABLE_COLLECTIVE_MATMUL` — V2 enum mode=none on both AG and RS
-- `DISABLE_BUNDLE_AWARE_COST_MODEL` — fixed a 3× backward regression in MoE (<internal-bug>)
+- `DISABLE_BUNDLE_AWARE_COST_MODEL` — fixed a 3× backward regression in MoE (b/357103386)
 - `ENHANCED_LAUNCH_BARRIER` — Pathways error propagation; **inverse** of this project's default (we set `false`)
 
 **Generic principles**:
@@ -815,7 +822,7 @@ The shared-substrate sources this index is grounded in (in addition to per-topic
 - `raw/code/maxtext/benchmarks/xla_flags_library.py` — MaxText canonical flag library
 - `raw/code/scaling-book/` — DeepMind/JAX-ML "How to Scale Your Model" (11 chapters)
 - `raw/code/tokamax/` — Pallas-on-Mosaic kernel suite (CE, splash, fused ops)
-- `raw/code/xprof-mcp/docs/TPU_OPTIMIZATION.md` — xprof-mcp diagnostic playbook
-- `raw/code/jax/`, `raw/code/torchtitan/` — runtime substrates
+- `raw/code/xprof-cli/docs/TPU_OPTIMIZATION.md` — xprof-mcp diagnostic playbook
+- `raw/code/jax/`, `raw/code/torch_tpu/`, `raw/code/torchtitan/` — runtime substrates
 
 **Regenerating this file**: see [`model-optimization-index-regenerate-prompt.md`](model-optimization-index-regenerate-prompt.md) for the self-contained prompt that rebuilds this page from current wiki state. Heuristic: regenerate end-to-end when 10+ new sources have landed since last regen.

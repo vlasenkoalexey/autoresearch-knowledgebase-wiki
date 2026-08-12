@@ -176,6 +176,29 @@ reduced to code (p.21).
 
 ## Relation to this wiki's other systems
 
+**vs. [KernelEvolve](kernelevolve.md) (Meta, ISCA 2026)** — the closest sibling ingested since, and the one
+that overlaps directly on §3.3.2's kernel-tuning case study. Both run LLM-driven search over code graded by
+measured execution on real accelerators, and both shipped to production. Where they diverge: AlphaEvolve
+commits to **evolution as the architecture** (the MAP-elites/island program database is its distinctive
+machinery, and §4's ablations show every part of it earns its place), while KernelEvolve treats the
+evolutionary algorithm as merely one setting of a pluggable selection policy alongside greedy and MCTS, and
+spends its complexity budget instead on a **hand-authored hardware knowledge base** plus runtime prompt
+synthesis. That difference tracks the problem: AlphaEvolve's targets (matrix decomposition, bin-packing,
+open math) are well inside a frontier model's pretraining, so search is the binding constraint; Meta's MTIA
+is absent from every training corpus, so *knowledge* is — and no selection policy recovers a fact the model
+has never seen.
+
+> [!warning] KernelEvolve's related work (§7, p.39) characterizes AlphaEvolve as optimizing "select stages of
+> TPU/GPU kernels" and groups it with systems that "target single hardware platforms with synthetic
+> workloads, lacking heterogeneous hardware support, production operator coverage, and deployment
+> infrastructure integration." On this page's own reading of the AlphaEvolve paper, the "synthetic workloads"
+> half is not supportable: the Pallas kernel result was measured on real TPUs against Gemini's actual
+> training (23% kernel speedup, 1% of total training time), the XLA-IR FlashAttention work targeted a
+> production compiler's output, and the Borg heuristic was deployed fleet-wide. The defensible part of the
+> criticism is the **heterogeneity** claim — every AlphaEvolve compute-stack case study is Google-internal
+> and TPU/XLA-centric, whereas KernelEvolve generates from one operator spec across NVIDIA, AMD, and a
+> proprietary ASIC. Recorded here so a later reader doesn't take the citing paper's summary at face value.
+
 > [!inferred] Two topic-page connections worth drawing once those pages exist:
 > - **vs. sequential/single-shot autoresearch pipelines** (The AI Scientist, Agent Laboratory-style
 >   systems, or Karpathy's `autoresearch` harness already in this wiki's `code/autoresearch/overview.md`):

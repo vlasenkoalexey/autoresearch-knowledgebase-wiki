@@ -87,3 +87,23 @@ schedules until `TIME_BUDGET` → [`evaluate_bpb`](concepts/prepare.md) scores t
   in the repo's `program.md`, surfaced under [doc-concepts/](doc-concepts/).
 - *"How does this generalize beyond LLM quality?"* → [wiki-driven autoresearch loop](../../topics/wiki-driven-autoresearch-loop.md)
   compares this repo against a TPU-performance specialization of the same pattern.
+- *"Has anyone benchmarked or beaten this since?"* → see "Benchmarked externally" below.
+
+## Benchmarked externally
+Two 2026 papers use this exact repository as a reference point, in different ways:
+
+- [RoboPhD](../../sources/robophd.md) (arXiv:2604.04347) cites this repository directly (`Karpathy, 2026`,
+  `github.com/karpathy/autoresearch`) and reimplements its single-continuous-session,
+  greedy-keep/discard-against-held-out-validation algorithm as a baseline — "Generalized Autoresearch" — ported
+  to four non-training-domain benchmarks (ARC-AGI, cloud scheduling, Text2SQL, financial QA) under a shared
+  1,500-evaluation budget alongside RoboPhD's own Elo-tournament selection and GEPA's Pareto-based selection.
+  This benchmarks the *algorithm*, not this exact `train.py`/`prepare.py` harness (which is hard-wired to GPT
+  pretraining and `val_bpb`) — see [`robophd`](../../sources/robophd.md) for the precise caveat, and its
+  Ethics Statement for an evaluation-gaming episode this reimplementation triggered (a simulator oracle
+  exploit on the Can't Be Late task).
+- [Recursive's "First Steps Toward Automated AI Research"](../../sources/recursive-automated-ai-research.md)
+  (blog, 2026-06) reports running its own automated research system against **this exact repo's `val_bpb`
+  metric** on GPT pretraining, beating the public `autoresearch@home` community leaderboard's best score
+  (0.9372 → 0.9109) via hashed n-gram embeddings gated into the attention value path. Unlike RoboPhD, this is
+  a claimed extension of the actual harness rather than a ported algorithm — but the article does not name
+  or diagram its search/ratchet mechanism, so treat the result as reported, not as a grounded comparison.

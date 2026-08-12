@@ -58,7 +58,37 @@ the code is itself never rewritten). Contrast the fixed floor one level down: th
 [`autoresearch`](../code/autoresearch/overview.md)'s human-authored keep-if-better ratchet, which
 mechanism-level self-improvement is what would, in principle, replace.
 
+## The rung above: when the mechanism lives in weights, not text
+
+This concept's whole framing — artifact-level vs. mechanism-level — assumes the mechanism is **text a
+frozen model reads and rewrites**: Python search code, a prompt, a skill, an evaluator. It is worth naming
+what that assumption excludes. [Frontis-MA1 / OpenMLE](../sources/frontis-ma1.md) improves the *proposal
+mechanism* too, but by **post-training the model that proposes**, on execution outcomes the search itself
+generated. Nothing textual changes: the harness, the operator prompts, and the selection rule are all fixed
+and human-authored across the whole run. The mechanism improved by 21 percentage points anyway, because the
+mechanism partly *is* the weights. See [`meta-evolution`](meta-evolution.md).
+
+That gives this wiki two orthogonal ways to improve a search mechanism, and they are cleanly separable:
+
+| | Bilevel Autoresearch (Level 2) | Frontis-MA1 (OpenMLE-ERL) |
+|---|---|---|
+| what changes | the search-mechanism **source code** | the proposal policy's **weights** |
+| how | a 4-round LLM dialogue writes Python, dynamically imported | execution-grounded SFT + RL on the same operators |
+| validated by | import-check, then activate-or-revert (archive size 1) | held-out benchmark, at fixed harness |
+| requires | the mechanism to be legible, editable text | owning the model, and a fixed operator interface |
+| measured gain | ~5× Δ`val_bpb` vs. inner loop alone | +21.22 pp Medal Average vs. base model, same harness |
+
+> [!inferred] Neither paper knows about the other's axis, and combining them is unclaimed territory.
+> Bilevel Autoresearch's Level 2 rewrites the mechanism a **frozen** model executes; Frontis-MA1 trains a
+> model to execute a **fixed** mechanism better. A system doing both would generate a new search mechanism
+> *and* fine-tune its proposer against that mechanism's own trace — which is roughly Frontis-MA1's stated
+> limitation #4 ("evolution operates primarily over candidate solutions, while the evolutionary system
+> itself remains largely fixed … a further step is to make the evolutionary system itself an object of
+> evolution") answered with Bilevel Autoresearch's Level 2. Worth flagging as the concrete next experiment
+> this pair of papers implies, since neither one proposes it.
+
 ## See also
+- [`meta-evolution`](meta-evolution.md) — the same target reached through weights instead of text
 - [`self-referential-code-rewriting`](self-referential-code-rewriting.md)
 - [`evolutionary-self-improvement`](evolutionary-self-improvement.md)
 - [`../sources/bilevel-autoresearch.md`](../sources/bilevel-autoresearch.md)

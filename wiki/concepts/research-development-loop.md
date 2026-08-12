@@ -69,7 +69,44 @@ card store, and "development" is just running the user's own measure command. Wh
 as the object of study, pi-autoresearch-vkf treats it as one config-time fork inside a smaller, VKF-memory-
 centric loop — the same lineage, a much thinner instantiation.
 
+## A different seam: operators instead of phases
+
+RD-Agent decomposes the loop **by phase** — Research proposes, Development implements — on the bet that
+cheap idea-generation should happen before expensive execution.
+[Frontis-MA1 / OpenMLE](../sources/frontis-ma1.md) cuts the same work along a perpendicular seam: **by
+transformation type**, into `Draft` / `Improve` / `Debug` / `Crossover`
+([`program-evolution-operators`](program-evolution-operators.md)). Each operator does its own proposing
+*and* its own implementing in one call; there is no Research/Development boundary inside a step.
+
+The two decompositions are optimizing for different things, and it is worth being precise about which:
+
+| | RD-Agent (phase seam) | OpenMLE (operator seam) |
+|---|---|---|
+| cut along | *when* work happens (propose → implement) | *what kind* of change is being made |
+| a step is | one hypothesis carried through coding + evaluation | one typed transformation of one or two programs |
+| context per step | trace of past `(hypothesis, code, feedback)` | operator-specific: ancestors+siblings, both parents, or same-error attempts |
+| the payoff | filter bad ideas before paying for execution | make each transformation individually learnable |
+
+The operator seam is what makes post-training tractable: a phase is too coarse and too
+controller-specific to supervise, whereas a transformation with a fixed signature can be an SFT example and
+an RL rollout for exactly the move the harness will later invoke. RD-Agent's own Co-STEER
+[evolving framework](../code/rd-agent/concepts/rdagent-core-evolving_framework.md) is closest in spirit —
+a propose/evaluate/refine loop over generated code — but it is `Improve`+`Debug` fused, with no
+recombination step and no notion of the operator as a training target.
+
+> [!inferred] These are complementary, not competing, and this wiki now has both without anyone combining
+> them. RD-Agent's evidence says exploration-path structuring is the single most load-bearing component
+> (removing it costs 28% relative Any-Medal Rate); Frontis-MA1's says late `Improve`/`Crossover` carry
+> 85–92% of long-horizon validation gain. Those are claims about *different halves* of the same system —
+> which branch to expand, and what to do once you're there — and neither paper measures the other's half.
+> Frontis-MA1's audit table happens to place R&D-Agent at 68.18% on MLE-Bench Lite, close to OpenMLE-Evo's
+> own 60.61–71.21% band, which makes them unusually comparable as candidates for a hybrid: a
+> Research-phase proposer feeding a trained operator vocabulary.
+
 ## See also
+- [`program-evolution-operators`](program-evolution-operators.md) — the alternative decomposition above
+- [`../topics/mle-agents-and-benchmarks.md`](../topics/mle-agents-and-benchmarks.md) — the benchmark
+  landscape both systems report on, and why their numbers aren't directly comparable
 - [`closed-loop-experiment-design`](closed-loop-experiment-design.md) — the feedback mechanism that
   connects a completed Development-phase result back into the next Research-phase proposal.
 - [`../topics/autoresearch.md`](../topics/autoresearch.md) — where this pattern sits relative to academic

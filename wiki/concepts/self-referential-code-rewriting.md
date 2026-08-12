@@ -8,9 +8,19 @@ doing the changing.
 
 ## Origin: the theoretical Gödel machine
 
-The term traces to Schmidhuber's 2007 **Gödel machine**, which required a *formal proof* that a candidate
-self-rewrite would be beneficial before adopting it — a requirement the Darwin Gödel Machine paper notes is
-practically impossible to satisfy without highly restrictive assumptions.
+The term traces to Schmidhuber's **Gödel machine** (arXiv:cs/0309048, first posted 2003, revised through
+v5 in Dec. 2006; a condensed version of the same title later appeared as a chapter in Goertzel & Pennachin
+(eds.), *Artificial General Intelligence*, Springer, 2007 — the "2007" date sometimes attached to this idea
+refers to that derivative chapter, not the primary paper). It is a formally specified agent that rewrites
+any part of its own code — including the proof searcher doing the rewriting — only once a proof searcher,
+reasoning from an axiomatized hardware/environment/utility model, finds a *formal proof* that the rewrite
+raises expected utility; because the proof implicitly compares against every alternative rewrite the
+unmodified searcher could ever find later, an accepted rewrite is provably **globally optimal**, not just
+locally better (Theorem 4.1). The paper's own limitations section concedes this can fail on undecidable
+cases (Gödel/Rice-style incompleteness), but it is notably *not* the source of the "provably impossible in
+practice" framing below — that critique is the Darwin Gödel Machine paper's, made against a paper that is
+itself fairly confident formalizing real-world utility is tractable. See
+[**Gödel Machines**](../sources/goedel-machines.md) for the full mechanism and a detailed comparison to DGM.
 
 ## In this wiki's papers
 
@@ -35,6 +45,28 @@ practically impossible to satisfy without highly restrictive assumptions.
   un-rewritten level *above* the level being rewritten — one bilevel step, not (yet) an open recursion. See
   [`mechanism-level-self-improvement`](mechanism-level-self-improvement.md) for the more general concept
   this instantiates.
+
+- [**Frontis-MA1 / OpenMLE**](../sources/frontis-ma1.md) is the sharpest *contrastive* case in the wiki,
+  because it improves the improver while being **less** self-referential than DGM, not more. Its
+  meta-evolutionary loop post-trains the model that proposes program transformations on the outcomes its
+  own search produced — so the thing doing the improving does get better at improving. But nothing in the
+  system is ever *rewritten by it*: the harness, the four operator prompts, the three-factor selection rule,
+  the reward shaping and the training loop are all fixed, human-authored text throughout. The authors name
+  the gap as limitation #4 — "evolution operates primarily over candidate solutions, while the evolutionary
+  system itself remains largely fixed … a further step toward recursive self-improvement is therefore to
+  make the evolutionary system itself an object of evolution" — and limitation #3, that the agent improves
+  *external* ML artifacts rather than participating in "the improvement of language models themselves."
+
+> [!inferred] **DGM and Frontis-MA1 are orthogonal halves of one ambition, and this is the page where that
+> matters most.** DGM is self-referential over a **frozen** backbone: the editor and the edited are one
+> repository, but no gradient ever flows. Frontis-MA1 updates the backbone but leaves the scaffold
+> human-owned: gradients flow, but the editor never touches itself. Each system's stated future work is
+> approximately the other's present — DGM flags making its archive/parent-selection loop self-referential,
+> Frontis-MA1 flags evolving its evolutionary system. Rung 4 of the ladder on
+> [`meta-evolution`](meta-evolution.md) requires both loops closed simultaneously: a trained proposer that
+> also rewrites the harness that trains it. No paper in this wiki does that, and it is worth being precise
+> that "the improver improves" (which Frontis-MA1 demonstrates) is **not** the same claim as "the improver
+> improves itself" (which it does not).
 
 > [!inferred] `autoresearch`'s ratchet ([`../code/autoresearch/overview.md`](../code/autoresearch/overview.md))
 > is explicitly **not** self-referential in this sense: the agent may edit `train.py`, but the ratchet logic

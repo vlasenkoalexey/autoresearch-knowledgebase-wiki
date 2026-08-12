@@ -76,6 +76,122 @@ in the same round the way ai-scientist-v2's multi-node frontier does. This wiki'
 [karpathy/autoresearch](../code/autoresearch/overview.md) is the ratchet this generalizes from: one global
 best-vs-current baseline becomes one best-vs-parent baseline, still without a judge, still without a frontier.
 
+## The production instance: KernelEvolve, and the oracle-vs-judge split
+
+[KernelEvolve](../sources/kernelevolve.md) (Meta, ISCA 2026) is the same pattern run continuously in
+business-critical infrastructure, and it cites the same lineage (AIDE, Jiang et al. 2025). Its formalization
+is the cleanest in the wiki — a search graph `G_t = (V_t, E_t)` specified by the tuple `(F, π_sel, O, τ)`:
+fitness, selection policy, operator, termination rule (source §3.1, p.12). Nodes carry the same
+`is_buggy` flag The AI Scientist-v2 uses, and the search likewise runs a **draft phase** of independent
+sampling (steps 0–10, no feedback) before a **tree-expansion phase** where each node inherits its ancestors'
+profiling, compilation, and correctness feedback (source §4, p.23–24). Reported search depths: 50 steps for
+trivial ATen operators, **300 steps** for a production conv1d.
+
+Three differences are load-bearing:
+
+- **The oracle replaces the judge.** AI Scientist-v2 marks a node buggy on an *LLM* verdict over the run plus
+  an independent *VLM* verdict over the plots; KernelEvolve marks a node buggy on `torch.allclose` against a
+  PyTorch reference and scores it as `F = t_pytorch / t_triton`, with `F = 0` for anything that fails
+  correctness or compilation. There is nothing to fool. This is why a 300-step production search can be
+  trusted to ship its winner, and it is the same design instinct as Karpathy's
+  [autoresearch](../code/autoresearch/overview.md) freezing `val_bpb` — arrived at independently, in a domain
+  where a free oracle happens to exist. The tradeoff is the domain restriction: this only works where a
+  reference implementation can be differentially tested (see
+  [`llm-kernel-generation`](llm-kernel-generation.md)).
+- **The selection policy is a swappable parameter, not the architecture.** `π_sel` is documented as
+  instantiable three ways — greedy (highest-scoring node), MCTS with UCT, or an evolutionary algorithm
+  maintaining a population for crossover/mutation. Where AI Scientist-v2 hard-codes best-first-plus-debug-
+  probability and [pi-autoresearch-vkf](../code/pi-autoresearch-vkf/overview.md) hard-codes single-best
+  hill-climbing, KernelEvolve treats the whole exploration strategy as configuration. The paper never reports
+  which policy produced which result, so its relative-value question stays open.
+- **The tree is a database, not a data structure.** Nodes persist to a relational metadata store
+  (`id`, `pid`, `score`, `is_buggy`, `path_ref`) backed by an object store; graph views are reconstructed via
+  recursive SQL CTEs rather than materialized in memory. That buys three things a per-process tree cannot:
+  hundreds of agents concurrently expanding different nodes under transaction isolation, resumption after a
+  crash (each node insert *is* a checkpoint), and reuse of trees from **prior sessions** — a new kernel
+  request is matched by operator type / shape / platform against history and the search is *initialized* from
+  the best prior implementation instead of from the baseline (source §3.2.2, p.15).
+
+> [!inferred] The third point is the one the other tree-search systems in this wiki have no answer to.
+> ai-scientist-v2's `Journal` and pi-autoresearch-vkf's tree are both born and die inside one run; a
+> "checkpoint" at best resumes the run you were in. KernelEvolve's claim is stronger — that the *right* place
+> to start search step 0 is a node from a search that finished last month, on a different but similar
+> operator. If inference-time scaling is the axis these systems compete on, warm-starting from a durable
+> cross-session corpus is a multiplier none of the single-run designs can match, and it is the same bet this
+> wiki makes about accumulating pages instead of re-deriving answers per query.
+
+## An argument against multi-operator search
+
+KernelEvolve also contests a design shared by most systems on this page. It uses a **single universal
+operator** rather than the specialized `Draft` / `Debug` / `Improve` operators that tree-search harnesses
+typically dispatch between, on the premise (Toledo et al., 2025) that "performance bottlenecks in LLM-based
+code generation stem primarily from operator design rather than search algorithms" — a static `Debug` prompt
+is error-focused whether the fault is algorithmic or a memory-access pattern. If that is right, then
+ai-scientist-v2's debug-probability branch and RD-Agent's Research/Development split are optimizing the wrong
+half of the system. The counter-evidence in this wiki cuts the other way, though: Bilevel Autoresearch found
+that rewriting the *search mechanism* produced ~5× while parameter tuning produced nothing (see
+[`mechanism-level-self-improvement`](mechanism-level-self-improvement.md)). Neither result is a controlled
+comparison of the other's claim — noted here as an open disagreement, not a settled one. Full treatment in
+[`retrieval-augmented-prompt-synthesis`](retrieval-augmented-prompt-synthesis.md).
+
+**Update from a later paper.** [Frontis-MA1 / OpenMLE](../sources/frontis-ma1.md) (July 2026) cites the same
+Toledo et al. premise and reaches the opposite conclusion: it keeps four specialized operators and makes
+them **post-training targets**. Its evidence is narrow but direct — the `nomad2018` case study pits a
+single-lineage search applying seven successive `Debug` steps against one targeted `Crossover` over two
+complementary parents, and the recombination wins by 8–11% RMSE. Crucially, OpenMLE-Evo's operators are
+*not* the static templates KernelEvolve objects to: each operator gets a different runtime-constructed
+context. So the two systems agree that prompts must be computed per-iteration and disagree only on whether
+the move's *name* is a useful index into that computation — a much narrower gap than "operators vs. no
+operators." Full treatment in
+[`program-evolution-operators`](program-evolution-operators.md).
+
+## Experience-guided expansion: OpenMLE-Evo
+
+[Frontis-MA1](../sources/frontis-ma1.md)'s **OpenMLE-Evo** harness is this wiki's most developed answer to
+the question every system on this page has to answer — *which node do I expand next?* — and it is the only
+one that measures the answer's cost per useful discovery.
+
+It starts from an **AIRA-Evo-style population loop** (AIDE lineage, same as everything above) and changes
+four things, each stated as a delta against the original (§5, p.15):
+
+1. **Deterministic state before prose.** Every evaluated node gets an **experience card** — provenance,
+   method family, delta-vs-parent, rank, execution outcome, resource usage — extracted deterministically
+   from search state and execution result, never LLM-generated. All cards aggregate into a task-global
+   **experience board** (family-wise bests, underexplored directions, repeated failures, score trends,
+   parent graph). Compare ai-scientist-v2's `Journal`, whose per-node verdict *is* an LLM/VLM judgment.
+2. **Three-factor parent selection.** Not softmax over fitness, but over
+   *U = λ_s·quality + λ_Δ·progress + λ_n·novelty* — validation score, normalized positive improvement over
+   the strongest parent, and method-family novelty. The `right-whale` study makes the mechanism visible:
+   a parent ranked **6th by score** but **1st by gain**, carrying a structurally distinct representation,
+   goes from 10.47% to **17.09%** selection probability in the same ten-parent pool (weights 1.0/0.6/0.3);
+   it gets picked for `Improve` and its child sets the run's best held-out AUC. The paper's own caution is
+   worth keeping: the factors "do not force a lower-scoring branch to win," they keep a distinct branch
+   *actionable long enough* to be selected.
+3. **Lazy, operator-scoped memory.** AIRA-Evo eagerly LLM-summarizes every evaluated node — paying for
+   nodes never selected, and summarizing *before* the decision context that should shape the summary
+   exists. OpenMLE-Evo defers synthesis until an `Improve`/`Crossover`/`Debug` call has already chosen its
+   nodes, then summarizes only those, and caches.
+4. **Bounded, operator-conditioned context** — a vertical ancestor trace plus a horizontal sibling set
+   ranked by the same utility, rather than an ever-growing serialized history.
+
+**The measurement is the contribution.** Same checkpoint, same seed, 12 h budget, 66 matched task–runs
+(§6.5, Figure 16): total model tokens **−41.7%** and prompt tokens **−50.3%**, while evaluated nodes fall
+only **12.4%** — so the saving is in making each expansion cheaper, not in searching less. New-best
+validation updates per million tokens rise **1.77 → 3.27 (+84.3%)**, and the share of `Improve` calls that
+set a new best roughly doubles (4.73% → 9.36%). The `Improve` prompt's **99th percentile** collapses from
+389.0K to 54.3K characters (−86.1%).
+
+> [!inferred] That p99 number is the most transferable result on this page. Every tree search here — the
+> `Journal`, the VKF card store, KernelEvolve's node table — accumulates history, and the default move is to
+> serialize more of it into each prompt. OpenMLE-Evo is the only system in this wiki that *measured* what
+> that costs and showed the frontier is not "more context vs. less" but **structured retrieval vs. bulk
+> replay**: it kept the same node throughput while cutting tail context by ~86%. It is also, notably, the
+> same diagnosis this wiki's own
+> [context-pollution write-up](../sources/2026-06-05-making-karpathy-autoresearch-production-ready.md)
+> reached from operating a loop, and that
+> [`retrieval-augmented-prompt-synthesis`](retrieval-augmented-prompt-synthesis.md) reaches from the
+> kernel side — three independent arrivals at the same architecture.
+
 <!-- connect:auto:begin -->
 ## In this wiki's repos
 Grounded implementations of **agentic-tree-search** across the ingested repos (generated by `wikify connect` — do not hand-edit inside this block):
@@ -86,4 +202,5 @@ Grounded implementations of **agentic-tree-search** across the ingested repos (g
 - [pi-autoresearch-vkf](../code/pi-autoresearch-vkf/concepts/extensions-pi-autoresearch-vkf-experiments.ts.md) — Experiment log & parent-relative baselines — what makes the tree-search meaningful
 - [pi-autoresearch-vkf](../code/pi-autoresearch-vkf/concepts/extensions-pi-autoresearch-vkf-index.ts.md) — The tool spine — autoresearchExtension and the autoresearch loop's control surface
 - [pi-autoresearch-vkf](../code/pi-autoresearch-vkf/concepts/extensions-pi-autoresearch-vkf-tree.ts.md) — The experiment search tree — best-first expansion over a parent-relative frontier
+- [openrsi](../code/openrsi/concepts/OpenMLE-ERL-SFT-tts_search-services-tree_search_state.md) — Tree-search state — the append-only event log and resumable snapshot behind SFT collection
 <!-- connect:auto:end -->

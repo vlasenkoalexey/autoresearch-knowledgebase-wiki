@@ -83,11 +83,96 @@ and pi-autoresearch-vkf's VKF card store as "what closes the loop."
 > is therefore not eligible for (and does not appear in) the auto-generated "grounded implementations"
 > list below.
 
+## A fourth point on the persistence axis: the loop that outlives the run
+
+Every instance above closes the loop within a run (ai-scientist-v2's tree, RD-Agent's `Trace`) or within a
+project (pi-autoresearch-vkf's card store). [KernelEvolve](../sources/kernelevolve.md) pushes furthest: its
+feedback state is a **relational database of the search graph itself** — one row per kernel candidate
+(`id`, `pid`, `score`, `is_buggy`, `path_ref`) pointing at an object store holding the kernel source, the
+profiling results, and an LLM-written `overview.md` diagnosing that node (source §3.2.2, p.15). Four
+capabilities follow from making the loop's memory a database rather than a process's data structure:
+
+1. **Concurrency** — dozens to hundreds of agents expand different nodes at once under transaction isolation;
+   an in-memory graph does not survive that scale.
+2. **Queryable feedback** — recursive SQL CTEs reconstruct graph views without materializing the tree, so
+   "what did my siblings try," "what strategy did my best-performing ancestor use," and "what is the global
+   best" are queries rather than traversals.
+3. **Cross-session warm start** — a *new* optimization request is matched against history by operator type,
+   input shape, and hardware platform, and search is **initialized from the best prior implementation** with
+   its optimization report attached, rather than from the baseline. The paper's worked example: a new GEMM
+   variant for attention on AMD MI350 matches 15 historical GEMM kernels, three above 1.5× via TLX warp
+   specialization; the best one seeds the search, which then explores only problem-specific adaptations
+   instead of rediscovering warp specialization.
+4. **Checkpointing** — each node insert atomically persists exploration state, so a crashed multi-hour
+   campaign resumes at its last iteration. KernelEvolve names "no checkpointing support" as one of six
+   deficiencies that keep prior kernel-generation systems out of production (§1, p.7).
+
+The axis this page tracks — *what state closes the loop, and what decision that state changes* — therefore
+reads, end to end: a live search tree (ai-scientist-v2) → a recorded trace of scored attempts, plus a bandit
+over summary statistics (RD-Agent) → a durable trust-gated claim store scoped to the project
+(pi-autoresearch-vkf) → **a queryable, cross-session corpus of past searches that decides where the next
+search begins** (KernelEvolve). Feedback stops being something consumed inside a run and becomes an asset
+amortized across runs.
+
+> [!inferred] Note what changes with (3) specifically. In every other system here, "feed back" answers *what
+> should I try next*. In KernelEvolve it also answers *where should I start* — which moves the loop's payoff
+> from within-run convergence to a corpus that makes each subsequent campaign cheaper than the last. It also
+> introduces a failure mode none of the others have: a warm start inherits its ancestor's assumptions, so a
+> stale optimization (tuned for a hardware generation since replaced) can seed searches long after it stopped
+> being a good idea. The paper reports the mechanism and its benefits but no staleness policy for the corpus,
+> and it cites a companion paper this wiki has not ingested — "Experience Graphs: The Data Foundation for
+> Self-Improving Agents" (Liao et al., 2026, [arXiv:2606.29823](https://arxiv.org/abs/2606.29823)) — as the
+> underlying substrate. Compare pi-autoresearch-vkf, whose VKF cards *do* carry a trust lifecycle with an
+> explicit `contradicted`/`retired` transition for exactly this reason.
+
+## A fifth destination: feedback that closes into the model's weights
+
+Everything above routes execution feedback into **search state** — a tree, a trace, a card store, a
+database — and the decision it changes is *which candidate to try next*.
+[Frontis-MA1 / OpenMLE](../sources/frontis-ma1.md) closes the same loop into a second destination as well:
+the **parameters of the model that proposes candidates**. The same executed rollouts that update the search
+are filtered into an SFT corpus and used as RL rollouts, so the next run of the loop starts from a better
+proposer. That is a different answer to "what decision does this state change" than any other system on this
+page gives, and it is what the paper means by *meta-evolution* — see
+[`meta-evolution`](meta-evolution.md).
+
+Its within-run feedback state is worth recording on its own terms, because it splits a distinction the
+other systems blur — **deterministic record vs. LLM-written prose**:
+
+- **Experience card** (per node). Provenance, method family, delta-vs-parent, rank, execution outcome,
+  resource usage — extracted *deterministically* from search state and execution result. Contrast
+  ai-scientist-v2's `Node`, whose buggy/good verdict is itself an LLM+VLM judgment, and KernelEvolve's node
+  row, which points at an LLM-written `overview.md` per node.
+- **Experience board** (per task). Cards aggregated into population-level statistics: explored method
+  families, family-wise bests, underexplored directions, repeated failures, score trends, the parent graph.
+- **Memory, synthesized lazily.** Natural-language summaries are produced **only after** an
+  `Improve`/`Crossover`/`Debug` call has selected its nodes, then cached — the paper's explicit complaint
+  against AIRA-Evo being that eager summarization pays for nodes never selected *and* writes the summary
+  before the decision context that should shape it exists.
+
+The execution feedback itself is typed rather than scalar: six distinguished modes — success, runtime
+error, missing code, missing submission, scoring failure, timeout — "allowing the agent to distinguish
+invalid execution from weak task performance," which is what makes a separate `Debug` operator meaningful
+at all.
+
+> [!inferred] The deterministic-first ordering is the transferable design rule here, and it cuts against
+> the default instinct of every LLM-agent system in this wiki. The cheap, reliable, queryable part of "what
+> happened" (score, delta, rank, error signature, runtime, method family) can be computed exactly and used
+> for *selection*; the expensive, unreliable part (why it happened, what to try next) is generated only for
+> the handful of nodes some operator actually consults. ai-scientist-v2 inverts this — it pays for an LLM
+> verdict on every node and then selects on that verdict — and the measured cost of the eager style shows
+> up in OpenMLE-Evo's matched comparison as a 41.7% token reduction at 12.4% fewer nodes. pi-autoresearch-vkf's
+> VKF cards are the closest existing analogue, but they carry a trust lifecycle rather than a
+> cheap/expensive split.
+
 ## See also
+- [`meta-evolution`](meta-evolution.md) — feedback closing into weights rather than only search state
 - [`research-development-loop`](research-development-loop.md) — the two-phase (Research/Development)
   structure that this feedback loop closes across.
 - [`../topics/autoresearch.md`](../topics/autoresearch.md) — other closed-loop systems in this wiki and how
   their feedback mechanisms compare.
+- [`../topics/mle-agents-and-benchmarks.md`](../topics/mle-agents-and-benchmarks.md) — MLE as the domain
+  where this loop closes without a human and without an LLM judge.
 
 <!-- connect:auto:begin -->
 ## In this wiki's repos
@@ -106,6 +191,10 @@ Grounded implementations of **closed-loop-experiment-design** across the ingeste
 - [bilevel-autoresearch](../code/bilevel-autoresearch/concepts/domains-article_opt-outer.md) — article_opt outer loop (Level 1.5)
 - [bilevel-autoresearch](../code/bilevel-autoresearch/concepts/domains-train_opt-outer.md) — TrainOuterLoop — the Level 1.5 search-strategy loop
 - [bilevel-autoresearch](../code/bilevel-autoresearch/concepts/domains-train_opt-runner.md) — TrainRunner — the Level 1 inner loop
+- [openrsi](../code/openrsi/concepts/OpenMLE-ERL-RL-generate_mle.md) — The RL rollout — operator-conditioned generation and reward computation
+- [openrsi](../code/openrsi/concepts/OpenMLE-ERL-SFT-tts_search-services-evaluator.md) — EvaluatorService — turning a sandbox run into a scored trajectory step
+- [openrsi](../code/openrsi/concepts/OpenMLE-ERL-SFT-tts_search-services-rejection.md) — Rejection policies — the SFT accept/reject quality gate (tts_search.services.rejection)
+- [openrsi](../code/openrsi/concepts/OpenMLE-ERL-SFT-tts_search-services-scheduler.md) — Scheduler — the tts_search orchestrator behind the SFT evolutionary path
 - [pi-autoresearch-vkf](../code/pi-autoresearch-vkf/concepts/extensions-pi-autoresearch-vkf-cards.ts.md) — VKF cards — the trust-lifecycle memory model
 - [pi-autoresearch-vkf](../code/pi-autoresearch-vkf/concepts/extensions-pi-autoresearch-vkf-index.ts.md) — The tool spine — autoresearchExtension and the autoresearch loop's control surface
 - [pi-autoresearch-vkf](../code/pi-autoresearch-vkf/concepts/extensions-pi-autoresearch-vkf-scoring.ts.md) — Idea scoring & explore/exploit balancing (`scoring.ts`)

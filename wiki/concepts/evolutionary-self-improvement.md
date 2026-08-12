@@ -69,6 +69,56 @@ So the four silos form a ladder from ratchet (autoresearch) → single-node hill
 best-first tree (ai-scientist-v2) → genuine growing archive (dgm), and only the last keeps every viable
 variant selectable.
 
+> [!inferred] [**RoboPhD**](../sources/robophd.md) adds a third selection mechanism to this ladder, distinct
+> from both ends: its Elo tournament maintains multiple concurrent lineages (closer to DGM's diversity than
+> `autoresearch`'s single branch) but draws each round's competitors only from the *current* winner plus the
+> top two by Elo — a variant that drops out of the top two is never resampled, so there is no DGM-style
+> stepping-stone revival of a temporarily-weak node. It sits strictly between the two ends of this ladder
+> rather than replicating either: more diversity than a size-1 archive, but no growing, all-nodes-eligible
+> population. Elo itself is also a structurally different selection *signal* from anything else on this
+> page — relative (a function of who an agent has beaten) rather than absolute (a scalar score against a
+> fixed metric or benchmark), which the paper argues buys tolerance for non-transitive agent strength and
+> stability under a noisy, shifting evaluation sample that a fixed keep-if-better or archive-sampling-weight
+> mechanism doesn't get "for free."
+
+## What a population is *for*: OpenMLE-Evo's three-factor selection
+
+The pages above argue that populations exist to preserve **stepping stones** — a temporarily-worse variant
+that can be resampled later. [Frontis-MA1 / OpenMLE](../sources/frontis-ma1.md) adds a second reason and,
+unusually, isolates it numerically.
+
+OpenMLE-Evo keeps an island-structured population and samples parents by softmax over a three-factor
+utility — **quality** (validation score), **progress** (normalized positive improvement over the strongest
+parent), and **method-family novelty** — rather than DGM's score×inverse-child-count or AIRA-Evo's
+normalized fitness alone. Its `right-whale` case study (§6.5, Figure 18) shows what the extra factors buy:
+Parent A leads on score (AUC 0.99187); Parent B ranks **6th by score** (0.98773) but **1st by gain** and
+carries a structurally distinct Log-Mel + delta/delta-delta representation. Under weights
+Score/Gain/Novelty = 1.0/0.6/0.3, B's selection probability in the *same ten-parent pool* rises
+**10.47% → 17.09% (+63.2% relative)**; B is chosen for `Improve` and its child sets the best held-out AUC of
+the run. The paper's own framing is careful and worth preserving: the extra factors "do not force a
+lower-scoring branch to win" — they keep a high-gain, structurally distinct branch **actionable long enough
+to be selected**.
+
+The second reason for a population is then made explicit by `Crossover`: two surviving branches can be
+**combined**, not merely resampled. On `nomad2018`, a physics-features parent and a robust-parser parent are
+fused into a child beating the best single lineage by 8–11% RMSE; across the two long-horizon trajectory
+studies, `Improve`+`Crossover` account for **85.0%** and **91.9%** of total validation gain. See
+[`program-evolution-operators`](program-evolution-operators.md).
+
+There is a third variant of the same selection idea inside OpenMLE's *training* loop (§4.3, Eq. 3): parents
+for RL rollouts are drawn proportional to reward + **child-reward variance** + a **visit-cooling** term. The
+variance term is the interesting one — it targets regions where operator outcomes are still *informative*
+rather than merely high-scoring, which is an explicitly information-seeking criterion none of the other
+systems on this page use.
+
+> [!inferred] Placed on the ladder above, OpenMLE-Evo sits between ai-scientist-v2's best-first tree and
+> DGM's archive, but it is the only system here whose selection rule is justified by a *within-pool
+> counterfactual* — recomputing the same ten candidates' probabilities under score-only vs. three-factor
+> weighting. DGM's evidence for its archive is an ablation across whole runs (`DGM Greedy` scores worse);
+> Frontis-MA1's is a single decision shown to flip. The two evidence styles are complementary, and this
+> wiki has been light on the second: an ablation tells you the ingredient matters, a counterfactual tells
+> you *how* it acted.
+
 ## See also
 - [`self-referential-code-rewriting`](self-referential-code-rewriting.md)
 - [`mechanism-level-self-improvement`](mechanism-level-self-improvement.md) — Bilevel Autoresearch's Level 2 as the "archive size 1" mechanism-level case contrasted above

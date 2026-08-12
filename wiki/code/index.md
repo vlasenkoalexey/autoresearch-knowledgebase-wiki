@@ -1,6 +1,6 @@
 ---
 title: wikify — top-level catalog
-updated: 2026-07-05
+updated: 2026-08-06
 ---
 
 # Wikify — repository wikis
@@ -13,5 +13,6 @@ updated: 2026-07-05
 | bilevel-autoresearch | [bilevel-autoresearch](bilevel-autoresearch/index.md) | connected (9 concepts) |
 | dgm | [dgm](dgm/index.md) | connected (4 concepts) |
 | openevolve | [openevolve](openevolve/index.md) | connected (7 concepts) |
+| openrsi | [openrsi](openrsi/index.md) | connected (15 concepts) |
 | pi-autoresearch-vkf | [pi-autoresearch-vkf](pi-autoresearch-vkf/index.md) | connected (7 concepts) |
 | rd-agent | [rd-agent](rd-agent/index.md) | connected (10 concepts) |

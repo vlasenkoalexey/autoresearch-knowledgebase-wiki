@@ -22,3 +22,6 @@
 [submodule "raw/code/autora"]
 	path = raw/code/autora
 	url = https://github.com/AutoResearch/autora
+[submodule "raw/code/openrsi"]
+	path = raw/code/openrsi
+	url = https://github.com/FrontisAI/OpenRSI

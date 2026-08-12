@@ -135,6 +135,86 @@ established here. See
 [`self-referential-code-rewriting`](../concepts/self-referential-code-rewriting.md), and
 [`evolutionary-self-improvement`](../concepts/evolutionary-self-improvement.md).
 
+### RoboPhD — a controlled comparison that puts `autoresearch` in a three-way race
+
+[RoboPhD](../sources/robophd.md) (Borthwick, Ash & Galczak, arXiv:2604.04347) is not another self-improving
+research loop in this wiki's usual sense — it evolves general agentic code artifacts (ARC-AGI solvers,
+cloud-scheduling strategies, Text2SQL agents, financial-QA agents), not training configs or model weights.
+It earns a place here because it is the first paper to run this wiki's own `autoresearch`
+([overview](../code/autoresearch/overview.md)) head-to-head against two other optimization paradigms — its
+own Elo-tournament selection and GEPA's Pareto-based selection — under identical seed agents, evaluators, and
+a fixed 1,500-evaluation budget, citing Karpathy's repository directly (`Karpathy, 2026`,
+`github.com/karpathy/autoresearch`) and reimplementing its algorithmic shape (single continuous session,
+greedy keep/discard against a held-out validation set) for four non-training domains.
+
+RoboPhD's default 3-agent Elo tournament — no validation split; all evaluations spent on training-data
+competition that simultaneously ranks agents and generates the error-analysis reports that drive the next
+mutation — wins 3 of 4 benchmarks, evolving a 22-line ARC-AGI seed agent into a 1,013-line multi-strategy
+system (27.8%→65.8% accuracy). Its own `autoresearch` reimplementation wins the fourth (Can't Be Late, an
+LLM-free scheduling task solvable in under 90 lines), which the authors attribute to that task rewarding
+incremental refinement of a single lineage over RoboPhD's population diversity. A companion ablation shows
+shrinking GEPA's and `autoresearch`'s validation set from 200 to 100 examples improves test scores in all
+eight paired comparisons — evidence, independent of RoboPhD's own design, that under a tight budget
+`autoresearch`-style validation-gated keep/discard is spending evaluations that a validation-free selection
+mechanism could instead spend on exploration. See [`robophd`](../sources/robophd.md) for the full
+paradigm comparison, including a genuine evaluation-gaming episode this paper's `autoresearch`
+reimplementation triggered (a simulator oracle exploit) that DGM's Appendix H independently prefigures for a
+different self-improvement architecture.
+
+### Recursive's "First Steps Toward Automated AI Research" — the same benchmark, an unspecified outer loop
+
+[Recursive's report](../sources/recursive-automated-ai-research.md) (blog, 2026-06) runs an automated research
+system — propose → implement → run → validate → pick-next, with no human step — against three benchmarks, one
+of which is **the exact `karpathy/autoresearch` repo this wiki's own
+[autoresearch silo](../code/autoresearch/overview.md) documents**: it beats the `autoresearch@home` community
+leaderboard's best val_bpb (0.9372 → 0.9109) via hashed n-gram embeddings gated into the attention value path.
+Unlike every other system in this section, the article does not specify its search/ratchet mechanism at all —
+no archive, no trace, no named data structure — only that it "runs many research threads over long horizons,
+keeps useful context from prior experiments, combines promising branches." Read against Karpathy's own
+single-branch keep/discard ratchet (which has no combination step) and DGM's archive (which keeps weak nodes
+only as stepping stones, not merge material), a genuine "combine promising branches" mechanism on this exact
+benchmark would be new to this wiki's autoresearch coverage — but the article shows no worked example, so this
+is a claim to track, not a verified mechanism.
+
+### Frontis-MA1 / OpenMLE — the improver's *weights* as the target
+
+Every system above modifies **text** proposed by a **frozen** model: a training config (`autoresearch`), an
+agent scaffold (DGM), a search mechanism (Bilevel Autoresearch). [Frontis-MA1](../sources/frontis-ma1.md)
+(arXiv:2607.28568, Frontis.AI · Tsinghua) closes the other loop — it **post-trains the model that proposes
+the variations**, on the execution outcomes its own evolutionary search produces. The paper supplies the
+ladder this section had been missing (Figure 2, p.4): **Evolution** (variation + selection) →
+**Self-evolution** (experience flows back into the search) → **Meta-evolution** (*the improver is trained*)
+→ **Recursive self-improvement** (the limiting goal, explicitly not claimed). See
+[`meta-evolution`](../concepts/meta-evolution.md).
+
+The mechanism is a shared interface: four atomic program-evolution operators —
+**Draft / Improve / Debug / Crossover** ([`program-evolution-operators`](../concepts/program-evolution-operators.md))
+— are simultaneously the SFT/RL training targets and the moves the inference-time search composes, so
+"local skill lives in the weights, global composition lives in the harness." Around that sit three layers:
+**OpenMLE-Gym** (5,758 quality-gated executable tasks with a Gym-style contract and sandboxed scoring),
+**OpenMLE-ERL** (execution-grounded SFT on 26,259 examples, then RL with adaptive on-policy reward bounds,
+an entropic advantage replacing GRPO's group normalization, and asynchronous rollouts because the dominant
+latency is program execution rather than token generation), and **OpenMLE-Evo** (an AIRA-Evo-style
+population loop redesigned around deterministic per-node *experience cards*, three-factor
+quality/progress/novelty parent selection, and memory synthesized lazily and per-operator).
+
+The result that matters here is the **two-way ablation**, because it separates gains this wiki has never
+been able to separate: holding the harness fixed and swapping the model is worth **+21.22 pp** Medal
+Average on MLE-Bench Lite (39.39 → 60.61%, reproduced at +18.18 pp on a second backbone); holding the model
+fixed and swapping the harness is worth **+7.58 pp** against original AIRA-Evo. Composed, a 35B open model
+on one 12 GB RTX 4090 reaches **71.21%**, above GPT-5.5 + Codex — and both halves transfer to the held-out
+NatureBench Lite. Weight-level and harness-level improvement are separable and additive, not substitutes.
+
+> [!inferred] **Frontis-MA1 and DGM are orthogonal halves of the same ambition.** DGM rewrites the scaffold
+> around a frozen model and leaves its archive/parent-selection loop human-owned; Frontis-MA1 trains the
+> model inside a fixed, human-authored harness and names "evolving the evolutionary system" as limitation
+> #4. Each system's stated future work is roughly the other's present. A genuine rung-4 system would close
+> both loops at once, and nothing in this wiki does.
+
+Its MLE-specific context — the benchmark landscape, the three research strands, and how to read these
+leaderboard numbers without being misled by split, budget, and run-count differences — is on
+[MLE agents and their benchmarks](mle-agents-and-benchmarks.md).
+
 > **Slot for later papers:** ShinkaEvolve and similar self-improving-agent papers land here.
 
 ## Hypothesis generation and idea evaluation
@@ -158,6 +238,13 @@ candidates, but split sharply on **who executes the step that produces new evide
   automation" loop as future work, not a current capability. See
   [`hypothesis-generation`](../concepts/hypothesis-generation.md) and
   [`multi-agent-debate`](../concepts/multi-agent-debate.md).
+- **[AI-Supervisor](../sources/ai-supervisor.md)** (Yunbo Long, arXiv:2603.24402) adds what Co-Scientist's
+  design lacks — a persistent, cross-*project* Knowledge Graph ("Research World Model") that survives
+  between separate runs, tested directly against a context-window-memory baseline (16 structural
+  cross-project links vs. 0). Its "consensus mechanism" gates gap verification on agent corroboration
+  counts, not debate or execution; the paper's own evaluation never exercises the code-execution/
+  reproduction step its architecture describes, leaving it, like Co-Scientist, without a demonstrated
+  closed experiment loop — see [`ai-supervisor.md`](../sources/ai-supervisor.md) for the mechanics.
 - **[The AI Scientist-v2](../sources/ai-scientist-v2.md)** (Sakana AI) runs its own experiments inside an
   agentic tree search — an LLM writes and executes Python, gets back real metrics/plots, and a VLM critiques
   the figures — closing the loop with no human step between hypothesis and result.
@@ -167,7 +254,17 @@ candidates, but split sharply on **who executes the step that produces new evide
 > agent. Co-Scientist's target experiments are physical biology (cell viability assays, organoid imaging)
 > that no current agentic system can run, so the loop necessarily opens onto a human scientist. Neither
 > paper draws this comparison explicitly; it is this wiki's synthesis for organizing "who actually closes
-> the experiment loop" across autoresearch systems.
+> the experiment loop" across autoresearch systems. AI-Supervisor sits in between: its architecture claims
+> code-execution/reproduction like AI Scientist-v2, but nothing in its own seven reported experiments shows
+> that step firing — see [`ai-supervisor.md`](../sources/ai-supervisor.md).
+
+**[ResearchGym](../sources/researchgym.md)** (Garikaparthi et al., arXiv:2602.15112) quantifies the gap
+this section's opening framing names, specifically for the ML domain where the loop *can* close inside the
+agent (unlike Co-Scientist's physical-biology target). By withholding five ICML/ICLR/ACL 2025 papers'
+proposed methods from their own repositories and grading against the paper's own execution harness rather
+than an LLM judge, it isolates whether an agent's proposed hypothesis actually beats a strong human
+baseline: a GPT-5 agent does so in only 1 of 15 runs (6.7%), though in that one run it surpasses an ICML
+2025 Spotlight's reference solution outright — occasional genuine capability, not reliable capability.
 
 ## Industrial R&D loop
 
@@ -189,6 +286,15 @@ architectural split between idea generation and implementation:
 - See [`research-development-loop`](../concepts/research-development-loop.md) for the six-component
   decomposition and [`closed-loop-experiment-design`](../concepts/closed-loop-experiment-design.md) for the
   hypothesis→implementation→validation→feedback cycle both papers share.
+
+> [!note] **The "new SOTA" framing on that MLE-Bench result is a mid-2025 statement.** RD-Agent's 35.1% is
+> the **full 75-task** split and stands exactly as reported. But by July 2026,
+> [Frontis-MA1's audit table](../sources/frontis-ma1.md) lists eight systems at or above 68% on the 22-task
+> **Lite** split — including R&D-Agent itself at 68.18% under the same GPT-5 backbone and 12 h/V100 budget,
+> which is the same system measured on the easier subset, not a revision. Splits, budgets, and backbones
+> move these numbers by tens of points; see
+> [MLE agents and their benchmarks](mle-agents-and-benchmarks.md) for the landscape and the comparison
+> hazards.
 
 ## Evolutionary and algorithm discovery
 
@@ -224,6 +330,32 @@ efficient GPU kernels. See the dedicated [Auto-optimization](auto-optimization.m
 learned-optimizer / NAS / kernel-autotuning literature proper; this section exists only to cross-link where
 the two topics meet (an LLM agent that optimizes a kernel *is* both an auto-research coding agent and an
 auto-optimization method — AlphaEvolve being the standout example).
+
+**What [KernelEvolve](../sources/kernelevolve.md) contributes back to *this* page.** It sits entirely on the
+auto-optimization side — it generates no hypotheses, writes no papers, assesses no novelty — but it is the
+wiki's only example of an agentic research loop that has run continuously in business-critical production,
+and three of its properties are about the loop rather than about kernels:
+
+- **The oracle problem solved by domain choice.** Its fitness is `t_pytorch / t_triton` with `F = 0` on any
+  `torch.allclose` or compilation failure — no LLM judge anywhere in the selection path. Every judged system
+  on this page (Co-Scientist's Elo debates, AI Scientist-v2's LLM+VLM node verdicts) pays a reliability tax
+  KernelEvolve simply doesn't incur, because in kernel optimization a free, trustworthy oracle exists. The
+  lesson is not "use an oracle" but "notice which of your claims *could* be adjudicated mechanically."
+- **Inference-time scaling as a first-class requirement.** It names "absence of inference-time scaling"
+  (search running hundreds-to-thousands of steps per problem) and "no checkpointing" as two of six reasons
+  prior research prototypes cannot reach production — the same sustained-search-plus-durable-state pair that
+  [`wiki-driven-autoresearch-loop`](wiki-driven-autoresearch-loop.md) identifies as separating working
+  harnesses from demos.
+- **Cross-session memory as a warm start.** Its search graph lives in a relational database and a *new*
+  optimization campaign is initialized from the best matching prior campaign rather than from the baseline —
+  the most aggressive answer in this wiki to "what accumulates between runs." See
+  [`closed-loop-experiment-design`](../concepts/closed-loop-experiment-design.md).
+
+It also picks a fight with the multi-operator design most systems here share, arguing that a **single
+universal operator** driven by retrieval-augmented prompt synthesis beats specialized `Draft`/`Debug`/
+`Improve` operators bound to static templates — directly against RD-Agent's Research→Development split. See
+[`retrieval-augmented-prompt-synthesis`](../concepts/retrieval-augmented-prompt-synthesis.md) and
+[`llm-kernel-generation`](../concepts/llm-kernel-generation.md).
 
 ## Open threads carried from the roadmap survey
 

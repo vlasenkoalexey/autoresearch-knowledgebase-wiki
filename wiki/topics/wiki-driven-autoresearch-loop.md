@@ -17,8 +17,10 @@ much larger generalization of it — and extracts what's common across both.
 | The observer | the frozen `evaluate_bpb` function, called in-process | XProf (OpenXLA's TPU profiler) wrapped as an MCP server, called by the agent as a tool |
 | Ledger | one flat `results.tsv` row per run — [experiment logging](../code/autoresearch/doc-concepts/experiment-logging.md) | eight page types (source / codebase / concept / model / hypothesis / experiment / observation / analysis), each schema-templated and cross-linked |
 | Ranking | none — single active branch, keep/revert | hypotheses ranked by `expected_gain × confidence / effort`; "next hypotheses" mandatory per experiment |
-| Autonomy safeguard | fast-fail NaN/loss guard aborts a bad run in seconds — [train.py — edge cases](../code/autoresearch/concepts/train.md) | a Stop-hook gate blocks the session from ending in never-stop mode until a fresh retrospective exists — see [methodology summary](../sources/tpu-performance-autoresearch-wiki.md) |
-| Exhaustion handling | none stated (`program.md` just says keep thinking harder) | a dedicated retrospective skill re-reads the *entire* experiment history before the agent is allowed to declare a search exhausted |
+| Autonomy safeguard | fast-fail NaN/loss guard aborts a bad run in seconds — [train.py — edge cases](../code/autoresearch/concepts/train.md) | a launch-armed `process-auditor` watcher that checks, brakes, and **revives** the session — see [methodology summary](../sources/tpu-performance-autoresearch-wiki.md) |
+| Exhaustion handling | none stated (`program.md` just says keep thinking harder) | a dedicated retrospective skill re-reads the *entire* experiment history, plus (kernel lane) a **set-diff against an enumerated lever list** before the agent may declare a search exhausted |
+| Verdict evidence | the frozen metric is computed in-process; nothing to forge | **author ≠ verifier**: a separate process re-measures and emits a self-hashed receipt; author-side numbers may never become verdict numbers — [`verification-independence`](../concepts/verification-independence.md) |
+| Pre-registration | implicit (loss went down or it didn't) | the hypothesis stub is **committed before** the work, and lint checks git history that the stub commit predates the verdict commit |
 | Loop decomposition | none — a single flat `program.md` prompt, single session | one monolithic per-iteration prompt originally, later split into skills (shared context: `formulate-hypothesis`, `edit-model-code`) and sub-agents (isolated context: `gke-cluster-runner`, `profile-analyzer`) once it needed to run reliably on weaker models — see [2026-06-26 post](../sources/2026-06-26-making-tpu-auto-optimization-work-with-other-agents.md) |
 
 ## What generalizes
@@ -48,12 +50,42 @@ own fast-fail instinct (abort a diverging run in seconds rather than let it burn
 
 **Unattended loops need an explicit accountability mechanism, not just a policy.** `autoresearch`'s
 `program.md` states "NEVER STOP" as an instruction the agent is trusted to follow. The TPU wiki instead
-*enforces* a version of this with a Stop hook that mechanically blocks session termination unless a
-recent, lane-specific retrospective exists — turning "keep going" from a policy into a gate. The
-retrospective itself exists because of a documented failure mode: a search declared exhausted, and a
-real win landed a week later once someone looked harder. The generalizable lesson is that "I'm out of
-ideas" is a claim that should require evidence (a coverage audit against a known taxonomy of what *could*
-be tried), not just be taken at the agent's word.
+*enforces* a version of it. The retrospective exists because of a documented failure mode: a search
+declared exhausted, and a real win landed a week later once someone looked harder. The generalizable
+lesson is that "I'm out of ideas" is a claim that should require evidence — a coverage audit against a
+known taxonomy of what *could* be tried — not just be taken at the agent's word.
+
+> [!warning] Contradicted by the 2026-08-06 re-ingest of [`tpu-performance-autoresearch-wiki`](../sources/tpu-performance-autoresearch-wiki.md)
+> This page previously described the enforcement mechanism as **a Stop hook that mechanically blocks
+> session termination** unless a recent lane-specific retrospective exists. That machinery was **retired
+> on 2026-07-21** — along with the `/loop` re-injection skill and its opt-in marker file — because it was
+> harness-specific, opt-in, and could only prevent a turn from *ending*, never restart a session that had
+> already gone idle.
+
+The replacement is more general and worth stating as the durable version of the lesson. Supervision is a
+**separate process, armed once, that the supervised party does not control**: a self-rescheduling auditor
+on the host's native scheduler that (1) *checks* — delta-audits everything since its own cursor and returns
+paste-ready corrections, (2) *brakes* — a stop claim lacking its artifacts is refused, and (3) *revives* —
+its next scheduled firing wakes a session that stopped early. Three details do the real work: the runner
+may not kill, pause, or reschedule the auditor (a session that does forfeits its close); the clean-stop
+authorization is **a file only the auditor can write**, whose content the shutdown marker must quote
+verbatim; and a runner-seeded audit cursor is itself a violation, so the supervised party cannot narrow its
+own audit window. The auditor is also deliberately *mechanical* — "run the command, compare, emit the
+finding; do not interpret intent, do not weigh context, do not soften" — and recomputes the closing
+conditions itself rather than trusting the summary the runner wrote. The generalizable claim: **a policy
+the agent enforces on itself is not a safeguard; a safeguard is a process with different lifetime, different
+authority, and an artifact the agent cannot forge.**
+
+**Stopping honestly needs a checklist the agent didn't write.** The strongest anti-premature-stop machinery
+in the TPU wiki isn't the watcher — it's that "have I covered the space?" was converted from a judgment into
+a **set-diff against an enumerated list**. Each kernel category has a page of named levers; closing a family
+requires a table with one row per lever, each either *tried* (with a receipt path that must resolve) or
+*ruled out* with an argument against that lever's **mechanism** at this operating point — and a failed
+implementation attempt rules out the attempt, not the lever. Two refinements came from measured failures and
+both generalize: the check is keyed to the **named lever**, never to a self-described "axis" (because
+free-text labels are self-classified, and three consecutive tunes of one lever can always be relabelled as
+three distinct axes); and it was moved from *close* time to *selection* time, because a gate that only fires
+when a search tries to finish never fires on a search that simply keeps going.
 
 **The root cause of every reliability failure the TPU wiki's author found was context pollution, in two
 different shapes.** First shape: governing instructions sit at the top of a session's context and sink
@@ -86,6 +118,17 @@ on a lucky noise sample. This generalizes past profiling specifically: any autor
 observer only reads a final scalar (not the mechanism that's supposed to produce it) is vulnerable to the
 same silent-no-op failure mode.
 
+**Once the loop is trusted, its evidence has to become an artifact rather than an assertion.** The 2026-08
+re-ingest shows where that pressure leads: measurement moves behind a single tool that emits a **self-hashed
+receipt**, a "supported" verdict may only cite a receipt whose own verdict is PASS, and lint treats a cited
+receipt path that doesn't resolve — or fails re-validation — as a *fabrication* finding that voids the
+verdict, on the principle that *"citing the path is not the evidence; the file is."* The same instinct shows
+up in two cheaper places worth copying: the candidate trail must be **one commit per attempt** (so a ledger
+with more rows than the branch has commits is detectably incomplete), and pre-registration is enforced by
+**commit ordering** rather than by attestation (the stub commit must predate the verdict commit, checked
+against git history). Each of these turns a claim the agent makes about its own work into something a
+mechanical checker can refute. See [`verification-independence`](../concepts/verification-independence.md).
+
 **Portability across models/harnesses is itself evidence for a methodology, not just a nice-to-have.** A
 four-way head-to-head on the same model/hardware/skills/sub-agents (Codex + GPT-5.5, Claude Code + Fable 5,
 Claude Code + Opus 4.8, Antigravity + Gemini 3.1 Pro) had all four run the loop unattended and file real
@@ -104,9 +147,38 @@ falsifiable hypothesis *queue* (not just a log of what was tried), a cross-varia
 transfer" matrix, and a mandatory "what does this motivate next" field on every completed run — the
 structure needed to keep a large search from re-deriving its own history by accident.
 
+**A compounding wiki eventually has to classify its own knowledge by whether it can be rebuilt.** The
+re-ingest introduces a distinction with no counterpart in `autoresearch`: some pages are **regeneratable
+synthesis** — derived from source pages, shipped alongside a checked-in *regenerate prompt* that rebuilds
+them end-to-end when a stated trigger fires ("4+ new families landed", "the API changed materially"), with
+the artifact's own header stating *"nothing original lives here"* — while others are **earned rules** that
+accrete one hard-won incident at a time and must *never* be rebuilt from a prompt, because no prompt can
+re-derive an event that already happened. The practical payoff is that the derived layer can be thrown away
+and regenerated instead of patched forever, so it keeps the shape of current knowledge rather than the shape
+of its own edit history. Paired with it are two scoping rules: each index is read by exactly **one role at
+exactly one step**, with mutually exclusive cardinal rules (hypothesis-generation material and
+analysis-reference material may not mix), and knowledge reaches a worker as **pasted content, section by
+section — never as paths** (measured: 2/8 vs 8/8 on one benchmark). That is the hard version of the
+sub-wiki-scoping idea: don't trust an agent to fetch the right pages, and don't trust it to fetch at all.
+
+**The same loop can run at two levels of the stack if the levels are explicitly coupled.** The TPU wiki now
+runs a model lane and a kernel lane over one page schema, joined by two mandatory rules that are the
+transferable part: **downward spawn** — a kernel family's operating point must come from a real
+model-lane profile, or it is optimizing an artificial workload — and **upward validation** — a kernel win
+does *not* update the model frontier; it spawns a model-lane experiment that must reproduce the gain
+end-to-end first. The justification is a measured failure class (kernel-level wins refuted by dispatch
+overhead and operating-point mismatch often enough that skipping the step ships regressions), and the
+general form is: **a result measured on a component is a hypothesis about the system, not a result about
+it.**
+
 ## See also
 - [karpathy/autoresearch — overview](../code/autoresearch/overview.md)
 - [tpu_performance_autoresearch_wiki — methodology summary](../sources/tpu-performance-autoresearch-wiki.md)
 - [TPU Model Performance Auto-optimization (blog, 2026-05-01)](../sources/2026-05-01-tpu-model-performance-auto-optimization.md)
 - [Making Karpathy's autoresearch production-ready (blog, 2026-06-05)](../sources/2026-06-05-making-karpathy-autoresearch-production-ready.md)
 - [Making TPU auto-optimization work with other agents (blog, 2026-06-26)](../sources/2026-06-26-making-tpu-auto-optimization-work-with-other-agents.md)
+- [Harness Extensibility comparison (2026-08-06)](../sources/2026-08-06-harness-extensibility-comparison.md)
+  — what of a loop like this actually ports between agent harnesses, and what has to be re-expressed
+- [`verification-independence`](../concepts/verification-independence.md) ·
+  [`llm-kernel-generation`](../concepts/llm-kernel-generation.md) — the kernel lane against the rest of the
+  kernel-optimization field

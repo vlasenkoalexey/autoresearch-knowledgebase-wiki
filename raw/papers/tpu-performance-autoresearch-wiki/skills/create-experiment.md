@@ -1,6 +1,6 @@
 ---
 name: create-experiment
-description: Bootstrap a new model family for the autoresearch loop. Creates the folder structure under wiki/experiments/, scaffolds the model-level program.md from a template (asking the user about lanes, sizes, hardware targets, sequence length, and architecture invariants), optionally creates lane-level program.md stubs, and creates model page stubs under wiki/models/. Invoke once per new model family before /start-experiment can run on it.
+description: Bootstrap a new model family (or kernel family) for the autoresearch loop. Creates the folder structure under wiki/experiments/, scaffolds the model-level program.md from a template (asking the user about lanes, sizes, hardware targets, sequence length, and architecture invariants), optionally creates lane-level program.md stubs, and creates model page stubs under wiki/models/. Invoke once per new model family before /start-experiment can run on it.
 ---
 
 You are bootstrapping a new model family for the autoresearch optimization loop. Follow this sequence — ask questions, then create files. Do NOT silently write files without confirming with the user.
@@ -11,15 +11,15 @@ Ask these questions in order (some may be combined into a single AskUserQuestion
 
 **Question 1**: "Model folder slug?" (free-text input expected)
 - This becomes the folder name under `wiki/experiments/`. Convention: lowercase, underscores, no spaces.
-- Examples: `gemma4`, `gemma5`, `qwen3_8B`, `llama4_70B`.
+- Examples: `afm_pt_moe`, `gemma5`, `qwen3_8B`, `llama4_70B`.
 - The full folder will be `wiki/experiments/<slug>_autoresearch_optimization/`.
 
 **Question 2**: "Model display name?" (free-text)
 - Human-readable name for documentation. Used in the model-level program.md title.
-- Examples: "Gemma 4", "Gemma 5", "Qwen3 8B", "Llama 4 70B".
+- Examples: "AFM PT MoE", "Gemma 5", "Qwen3 8B", "Llama 4 70B".
 
 **Question 3**: "Which lanes?" (multi-select)
-- Options: `tpu (PyTorch eager on TPU)`, `jax (JAX + Flax NNX)`, `torchax (torchax bridge)`, `maxtext (MaxText)`. User can also type a custom lane name.
+- Options: `tpu (PyTorch + TorchTPU)`, `jax (JAX + Flax NNX)`, `torchax (torchax bridge)`, `maxtext (MaxText)`. User can also type a custom lane name.
 - The lane folders will be created under `wiki/experiments/<slug>_autoresearch_optimization/`.
 
 **Question 4**: "Model sizes?" (free-text, comma-separated)
@@ -41,6 +41,22 @@ Ask these questions in order (some may be combined into a single AskUserQuestion
 **Question 8** (optional): "Trainer entry-point pattern?" (free-text)
 - Default: `torchtitan.experiments.<lane>.<slug>.train_minimal` (matches the existing convention).
 - User can override if their model uses a different entry pattern.
+
+## Kernel-family variant (SCHEMA "Kernel experiment families")
+
+If the user is bootstrapping a **kernel family** (they say "kernel", the slug names a kernel like `splash_attention`, or they invoke this after a model-lane profile-analyzer emitted a kernel op-point), the questions and outputs adapt:
+
+- **Q1 slug** → folder is `wiki/kernel_experiments/<slug>/`; the single lane is `pallas` (skip Q3).
+- **NEW Q — home repo**: which `raw/code/<repo>` the kernel ships in, determined by op-point provenance (the repo whose model-lane profile spawned the family)
+- **NEW Q — integration branch**: the home repo branch family work starts FROM and graduates TO (e.g. `pallas-kernel-optimization-clean`, `autoresearch-frontier`) — NEVER `main`/`master`; created from main at bootstrap if absent. Recorded as `integration_branch:` in the family binding.
+- **NEW Q — archive remote**: the fork WE control to push `kernel/*` branches to at K7 (durability of the code record; never an unowned upstream). If none, the family binding records `archive_remote: none` and every page notes the local-only risk. Both recorded as binding lines in the family `program.md`; K4 creates the family's SINGLE `.repo` worktree of the home repo (one per family, reused across v-levels — branch per vNNN). `capability-eval`-only families have no home repo — record `home_repo: none (eval)` and candidates are tracked on the eval branch instead.
+- **Q4 sizes → operating points**: ask "Operating point(s)?" — comma-separated op-point keys, e.g. `"b8-s4096-h32-bf16"`. For each, ask which **model-lane experiment page** produced it (the downward-spawn provenance; SCHEMA requires it on the variant row). If none exists yet, record `provenance: exploration` on the row.
+- **Q5 hardware** → single-chip targets (e.g. `v6e-1`, `v5p-1`); kernel families run locally.
+- **Q6 seq-len** → skip (encoded in the op-point).
+- **NEW Q — reference implementation + parity tolerance**: the exact callable/kernel the family's outputs are checked against, and the atol/rtol for the numerical-parity gate. Goes into the family program.md verbatim.
+- **Family page** → `wiki/kernels/<kernel-slug>.md` (the dedicated `wiki/kernels/` dir — kernel families are NOT placed in `wiki/models/`, per SCHEMA "Family page location") with `type: model`, `lane: pallas`; variant matrix keyed `<op-point>/<hardware>`; Target metrics = kernel µs, TFLOPs + roofline util, per-unit `% util`, wait_ratio; "How to run" = the local benchmark-harness command (JAXBench-style: warmup + device-timed iters; cite `wiki/codebases/accelerator-agents/concepts/jaxbench-benchmark-harness.md`).
+- **Family program.md** (Step 4 template) → a THIN stub inheriting the kernel-root layer `wiki/kernel_experiments/program.md` (which carries the K0–K9 loop, activity classes, budgets, metrics). The family file states only: the reference implementation + parity tolerance (from the NEW Q above), the chip binding, op-point notes, and any known priors. Do not copy loop/procedure content into it.
+- **Capture flags** to bake into the How-to-run: `LIBTPU_INIT_ARGS="--xla_enable_custom_call_region_trace=true --xla_xprof_register_llo_debug_info=true --xla_jf_dump_to=<exp-dir> --xla_jf_dump_llo_text=true --xla_mosaic_dump_to=<exp-dir>"`.
 
 ## Step 2 — Confirm the plan
 
@@ -117,7 +133,7 @@ Before starting:
 - Read the model page: `wiki/models/<SLUG>-<lane>.md`.
 - Read the last 2–3 experiment pages in your lane.
 
-## <MODEL>-specific CAN additions
+## AFM-specific CAN additions
 
 (Additive on top of root `program.md`'s "What you CAN do". Root section still applies.)
 

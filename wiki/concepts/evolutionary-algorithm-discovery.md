@@ -36,16 +36,83 @@ evaluator can be written.
   TPU circuits, XLA IR). This is the wiki's canonical exemplar of the concept.
 - **openevolve** ([codelion/openevolve](https://github.com/codelion/openevolve)) — an independent
   open-source reimplementation of the AlphaEvolve recipe.
+- **GEVO / GEVO-ML** (Liou, Forrest, Wu et al., 2019–2022) — the pre-LLM branch, cited by
+  [KernelEvolve](../sources/kernelevolve.md) §7: evolutionary computation applied to GPU code at the
+  LLVM/MLIR level with *handwritten* transformation operators. The same skeleton with the LLM swapped in for
+  the mutation operator — useful for isolating what the LLM actually contributes.
+
+## A partial instance: evolution as one setting, not the architecture
+
+[KernelEvolve](../sources/kernelevolve.md) is worth recording here as a boundary case. It satisfies the
+defining property — code-valued candidates, LLM-authored edits, execution-grounded selection with a hard
+correctness constraint (`F = 0` on any `allclose` or compilation failure) — but it does **not** commit to
+evolution as its architecture. Its selection policy `π_sel` is explicitly pluggable between greedy search,
+MCTS with UCT, and "evolutionary algorithms maintaining populations of diverse candidates for crossover and
+mutation" (source §3.1, p.12). Evolution is one configuration among three, and the paper never reports which
+policy produced which of its production results.
+
+The contrast with AlphaEvolve is sharp and worth holding: AlphaEvolve's distinctive machinery is the
+**population database** (MAP-elites × islands) deciding which candidates seed the next generation, and its
+ablations show every component of that machinery contributes. KernelEvolve's distinctive machinery is
+instead the **prompt** — a diagnosis stage plus retrieval from a hand-authored hardware knowledge base
+determining what the model *knows* when it writes each candidate (see
+[`retrieval-augmented-prompt-synthesis`](retrieval-augmented-prompt-synthesis.md)). Same bargain, opposite
+investment: one system spends its complexity budget on *which parent to mutate*, the other on *what the
+mutation operator has read*.
+
+> [!inferred] These are not competing answers to one question — they are answers to different questions, and
+> which one dominates likely depends on whether the base model already knows the domain. AlphaEvolve's
+> targets (matrix decomposition, bin-packing heuristics, open math) are all well within a frontier model's
+> pretraining, so the binding constraint is search: how to escape local optima across generations. MTIA
+> kernels are outside *any* model's pretraining, so the binding constraint is knowledge: no selection policy
+> recovers a fact the model has never seen. Neither paper tests the other's regime, which makes this a clean
+> open question rather than a resolved trade-off.
 
 > [!inferred] Related but distinct: this concept is narrower than "AI-scientist / research agents" broadly
 > (many of which reason in natural language and need no programmatic evaluator) and narrower than
 > classical NAS/AutoML (which search configuration spaces with fixed operators). The distinguishing
 > combination is: code-valued candidates + LLM-as-operator + execution-grounded evolutionary selection.
 
+## When the mutation operator is trained rather than prompted
+
+Every instance above uses a **frozen** LLM as the mutation operator — the whole paradigm's premise is that a
+good outer loop extracts more capability from a fixed model. [Frontis-MA1 / OpenMLE](../sources/frontis-ma1.md)
+(arXiv:2607.28568) breaks that premise: it **post-trains the mutation operator on the outcomes the
+evolutionary loop itself produces**, with SFT and RL targeting the same `Draft`/`Improve`/`Debug`/`Crossover`
+transformations the search later composes ([`program-evolution-operators`](program-evolution-operators.md)).
+
+All three pillars of the Core Mechanism survive intact — code-valued candidates, LLM-authored edits,
+execution-grounded selection with a hard validity gate — so this is an instance of the concept, not a
+departure from it. What changes is where the improvement accumulates. The two-way ablation separates them
+on MLE-Bench Lite: holding the harness fixed and swapping in the trained model is worth **+21.22 pp** Medal
+Average; holding the model fixed and swapping in the better harness is worth **+7.58 pp**; they compose. So
+the harness-extracts-more-from-a-fixed-model thesis is not wrong — it is the *smaller* of the two effects
+here. See [`meta-evolution`](meta-evolution.md).
+
+Two design consequences the frozen-model instances never face, both from §4.3:
+
+- **Reward scales must be re-derived on-policy.** AlphaEvolve's `evaluate` returns whatever the problem's
+  natural metric is and the database ranks on it. To *train* on those scores across heterogeneous tasks you
+  need them comparable, and fixed leaderboard or theoretical bounds are far wider than the region a policy
+  actually occupies — "meaningfully different programs collapse to nearly identical rewards." OpenMLE
+  derives bounds from each task's historical **on-policy score frontier**, moving with the policy.
+- **Best-of-budget must be written into the loss.** Evolutionary search is judged on the single best
+  program found, so uniformly reinforcing every non-failing candidate is the wrong update. An **entropic
+  advantage** (an exponential tilt replacing GRPO's group normalization) concentrates the signal on a
+  group's top candidates — measured best-candidate advantage 1.58 → 6.39.
+
+> [!inferred] Selection pressure is the one thing every system on this page already had; what
+> Frontis-MA1 shows is that the *same* selection signal can be spent twice — once to choose which child
+> survives this generation, and again as a training weight that makes the next generation's proposals
+> better a priori. openevolve's cascade evaluator computes exactly the scalar this would need. Nothing in
+> the architecture of AlphaEvolve or openevolve forbids it; they simply don't own the model.
+
 ## In this wiki
 
-- Papers: [AlphaEvolve](../sources/alphaevolve.md) (canonical). Referenced as an architectural family in
-  the [AI-for-Auto-Research roadmap survey](../sources/ai-for-auto-research-roadmap.md).
+- Papers: [AlphaEvolve](../sources/alphaevolve.md) (canonical);
+  [Frontis-MA1](../sources/frontis-ma1.md) (the trained-operator variant);
+  [KernelEvolve](../sources/kernelevolve.md) (the boundary case above). Referenced as an architectural
+  family in the [AI-for-Auto-Research roadmap survey](../sources/ai-for-auto-research-roadmap.md).
 - Topics: appears in both [autoresearch](../topics/autoresearch.md) (as a search-based/self-improving
   system) and [auto-optimization](../topics/auto-optimization.md) (as LLM-driven superoptimization) — this
   concept is the mechanism those two entries share.
@@ -107,4 +174,11 @@ Grounded implementations of **evolutionary-algorithm-discovery** across the inge
 - [openevolve](../code/openevolve/concepts/openevolve-process_parallel.md) — Process-based parallel evolution (ProcessParallelController)
 - [openevolve](../code/openevolve/concepts/openevolve-prompt-sampler.md) — Prompt sampler — assembling what the LLM mutation operator sees
 - [openevolve](../code/openevolve/concepts/openevolve-utils-code_utils.md) — SEARCH/REPLACE diffs — turning an LLM's text output into a child program
+- [openrsi](../code/openrsi/concepts/OpenMLE-ERL-RL-airaevo_experience.md) — airaevo_experience.py — the original-AIRA-Evo selection/memory adapter for RL rollouts
+- [openrsi](../code/openrsi/concepts/OpenMLE-ERL-RL-generate_mle.md) — The RL rollout — operator-conditioned generation and reward computation
+- [openrsi](../code/openrsi/concepts/OpenMLE-ERL-RL-program_database.md) — Program database — three-term fitness and operator-conditioned parent sampling
+- [openrsi](../code/openrsi/concepts/OpenMLE-ERL-SFT-tts_search-program_database.md) — Program database — reward-as-fitness store behind SFT's greedy draft/improve search
+- [openrsi](../code/openrsi/concepts/OpenMLE-ERL-SFT-tts_search-services-generator.md) — GeneratorService — the operator-agnostic LLM caller behind tts_search's SFT trajectory collection
+- [openrsi](../code/openrsi/concepts/OpenMLE-ERL-SFT-tts_search-services-scheduler.md) — Scheduler — the tts_search orchestrator behind the SFT evolutionary path
+- [openrsi](../code/openrsi/concepts/OpenMLE-Evo-tts_search-program_database.md) — Program database — the storage substrate, not the selection policy
 <!-- connect:auto:end -->
