@@ -1,0 +1,98 @@
+---
+title: 'Module: packages/tui/src/terminal.ts'
+type: catalog
+provenance: extracted
+module: packages/tui/src/terminal.ts
+status: fresh
+symbol_base: scip-typescript npm @earendil-works/pi-tui 0.7.2 src/`terminal.ts`/
+symbols:
+  ProcessTerminal.stop: ProcessTerminal#stop().
+  ProcessTerminal: ProcessTerminal#
+  Terminal: Terminal#
+  Terminal.write: Terminal#write().
+  ProcessTerminal.setupStdinBuffer: ProcessTerminal#setupStdinBuffer().
+  Terminal.-get-rows: Terminal#`<get>rows`().
+  Terminal.hideCursor: Terminal#hideCursor().
+  ProcessTerminal.start: ProcessTerminal#start().
+  ProcessTerminal.finishDefaultColorProbe: ProcessTerminal#finishDefaultColorProbe().
+  ProcessTerminal.queryAndEnableKittyProtocol: ProcessTerminal#queryAndEnableKittyProtocol().
+  ProcessTerminal.handleDefaultColorProbeResponse: ProcessTerminal#handleDefaultColorProbeResponse().
+  ProcessTerminal.releaseAltScreen: ProcessTerminal#releaseAltScreen().
+  Terminal.stop: Terminal#stop().
+  Terminal.setTitle: Terminal#setTitle().
+  Terminal.setProgress: Terminal#setProgress().
+  ProcessTerminal.enterAltScreen: ProcessTerminal#enterAltScreen().
+  ProcessTerminal.-get-altScreenActive: ProcessTerminal#`<get>altScreenActive`().
+  Terminal.showCursor: Terminal#showCursor().
+  ProcessTerminal.queryDefaultTerminalColors: ProcessTerminal#queryDefaultTerminalColors().
+  Terminal.drainInput: Terminal#drainInput().
+  ProcessTerminal.setProgress: ProcessTerminal#setProgress().
+  Terminal.leaveAltScreen: Terminal#leaveAltScreen().
+  cancelInputHandoff: cancelInputHandoff().
+  Terminal.start: Terminal#start().
+  Terminal.enterAltScreen: Terminal#enterAltScreen().
+  Terminal.setMouseTracking: Terminal#setMouseTracking().
+  pendingInputHandoff: pendingInputHandoff.
+  ProcessTerminal._altScreenActive: ProcessTerminal#_altScreenActive.
+  Terminal.moveBy: Terminal#moveBy().
+  Terminal.clearLine: Terminal#clearLine().
+  Terminal.clearFromCursor: Terminal#clearFromCursor().
+  Terminal.clearScreen: Terminal#clearScreen().
+  TerminalStopOptions: TerminalStopOptions#
+  ProcessTerminal.drainInput: ProcessTerminal#drainInput().
+  ProcessTerminal.stdinBuffer: ProcessTerminal#stdinBuffer.
+  ProcessTerminal.inputHandler: ProcessTerminal#inputHandler.
+  beginInputHandoff: beginInputHandoff().
+  consumeInputHandoff: consumeInputHandoff().
+  Terminal.-get-columns: Terminal#`<get>columns`().
+  ProcessTerminal._kittyProtocolActive: ProcessTerminal#_kittyProtocolActive.
+  ProcessTerminal.defaultColorProbe: ProcessTerminal#defaultColorProbe.
+  ProcessTerminal.ownsPendingAltScreenHandoff: ProcessTerminal#ownsPendingAltScreenHandoff().
+  pendingAltScreenHandoff: pendingAltScreenHandoff.
+  Terminal.-get-altScreenActive: Terminal#`<get>altScreenActive`().
+  Terminal.-get-mouseTrackingActive: Terminal#`<get>mouseTrackingActive`().
+  ProcessTerminal.resizeHandler: ProcessTerminal#resizeHandler.
+  ProcessTerminal._modifyOtherKeysActive: ProcessTerminal#_modifyOtherKeysActive.
+  ProcessTerminal.clearKeyboardProtocolFallbackTimer: ProcessTerminal#clearKeyboardProtocolFallbackTimer().
+  ProcessTerminal.write: ProcessTerminal#write().
+  Terminal.-get-kittyProtocolActive: Terminal#`<get>kittyProtocolActive`().
+  ProcessTerminal._mouseTrackingActive: ProcessTerminal#_mouseTrackingActive.
+  ProcessTerminal.stdinDataHandler: ProcessTerminal#stdinDataHandler.
+  ProcessTerminal.keyboardProtocolFallbackTimer: ProcessTerminal#keyboardProtocolFallbackTimer.
+  ProcessTerminal.progressInterval: ProcessTerminal#progressInterval.
+  ProcessTerminal.setMouseTracking: ProcessTerminal#setMouseTracking().
+  ProcessTerminal.defaultColorProbe.typeLiteral22.foreground: ProcessTerminal#defaultColorProbe.typeLiteral22:foreground.
+  ProcessTerminal.defaultColorProbe.typeLiteral22.background: ProcessTerminal#defaultColorProbe.typeLiteral22:background.
+  ProcessTerminal.leaveAltScreen: ProcessTerminal#leaveAltScreen().
+  ProcessTerminal.clearProgressInterval: ProcessTerminal#clearProgressInterval().
+  TerminalStopOptions.preserveAltScreen: TerminalStopOptions#preserveAltScreen.
+  ProcessTerminal.altScreenHandoffToken: ProcessTerminal#altScreenHandoffToken.
+  consumeAltScreenHandoff: consumeAltScreenHandoff().
+  ProcessTerminal.enableWindowsVTInput: ProcessTerminal#enableWindowsVTInput().
+  PendingInputHandoff.wasRaw: PendingInputHandoff#wasRaw.
+  PendingInputHandoff.discardHandler: PendingInputHandoff#discardHandler.
+  ProcessTerminal.wasRaw: ProcessTerminal#wasRaw.
+  ProcessTerminal.started: ProcessTerminal#started.
+  ProcessTerminal.-get-kittyProtocolActive: ProcessTerminal#`<get>kittyProtocolActive`().
+  ProcessTerminal.-get-mouseTrackingActive: ProcessTerminal#`<get>mouseTrackingActive`().
+  TERMINAL_PROGRESS_ACTIVE_SEQUENCE: TERMINAL_PROGRESS_ACTIVE_SEQUENCE.
+  TERMINAL_PROGRESS_CLEAR_SEQUENCE: TERMINAL_PROGRESS_CLEAR_SEQUENCE.
+  ProcessTerminal.defaultColorProbe.typeLiteral22.timeout: ProcessTerminal#defaultColorProbe.typeLiteral22:timeout.
+  ProcessTerminal.writeLogPath: ProcessTerminal#writeLogPath.
+  cjsRequire: cjsRequire.
+  TERMINAL_PROGRESS_KEEPALIVE_MS: TERMINAL_PROGRESS_KEEPALIVE_MS.
+  PendingInputHandoff: PendingInputHandoff#
+  PendingInputHandoff.token: PendingInputHandoff#token.
+  ProcessTerminal.-get-columns: ProcessTerminal#`<get>columns`().
+  ProcessTerminal.-get-rows: ProcessTerminal#`<get>rows`().
+  ProcessTerminal.moveBy: ProcessTerminal#moveBy().
+  ProcessTerminal.hideCursor: ProcessTerminal#hideCursor().
+  ProcessTerminal.showCursor: ProcessTerminal#showCursor().
+  ProcessTerminal.clearLine: ProcessTerminal#clearLine().
+  ProcessTerminal.clearFromCursor: ProcessTerminal#clearFromCursor().
+  ProcessTerminal.clearScreen: ProcessTerminal#clearScreen().
+  ProcessTerminal.setTitle: ProcessTerminal#setTitle().
+---
+# Module: [`packages/tui/src/terminal.ts`](../../../../../../../raw/code/prime-agent/packages/tui/src/terminal.ts)
+
+> **Collapsed catalog** (86 symbols) — anchors above resolve for citations; detailed member listing omitted (`coverage_collapse`). See the source link above, or the curated codebase page, for depth.

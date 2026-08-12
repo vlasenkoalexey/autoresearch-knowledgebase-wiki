@@ -15,7 +15,10 @@ updated: 2026-07-04
 > and the [rd-agent overview](../rd-agent/overview.md). This repo reads as the fourth silo's synthesis of that
 > lineage plus this wiki's own [`karpathy/autoresearch`](../autoresearch/overview.md) ratchet pattern (a fixed
 > unit of experiment, keep/discard on a metric) — generalized here into a per-node, parent-relative baseline
-> instead of one global one.
+> instead of one global one. It targets the same `pi` coding-agent framework
+> [`prime-agent`](../prime-agent/overview.md) is built directly on top of — an extension for that class of
+> host agent, not a fork of it; see prime-agent's overview for the extension-point mechanism
+> (`ExtensionAPI`/package manager) this repo's `autoresearchExtension` registers through.
 
 ## In one paragraph
 `pi-autoresearch-vkf` turns a blind optimization loop into a self-improving researcher by adding **verifiable

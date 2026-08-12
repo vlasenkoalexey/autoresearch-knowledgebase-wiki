@@ -1196,3 +1196,171 @@ scheduler/rollout; `verification-independence.md` gets a new table row for Front
 sandboxed hidden-evaluator score is structurally independent but the two self-report cross-checks are
 weaker (the hack-check judge fails *open* by default; the sandbox's secret-stripping is opt-in, tied to the
 non-default `"isolated"` execution mode). `wikify finalize openrsi` re-checked green after both edits.
+
+## [2026-08-12] ingest-code | rlm
+
+Ingested `alexzhang13/rlm` (submodule, pinned @ `caf0bffa1a`) — Alex Zhang's own reference implementation of
+[Recursive Language Models](sources/recursive-language-models.md), the first of four repos named in the
+2026-08-10 "Context as a Variable" video (`k2rkLm1eA9k`). 1,753 symbols across 121 modules (100% represented,
+191/191 classes); 21 code concept pages + 3 doc-concept pages
+(`repl-environment-taxonomy`, `codeact-bet`, `trajectory-logging-and-visualization`). `wikify finalize`
+green after a repair loop (26 → 7 → 2 → 1 → 0 lint errors — mostly cross-packet citation leakage: a symbol
+genuinely in the repo but not in the specific packet being synthesized, which the linter correctly rejects).
+Adversarial verify run as a spot-check on the highest-load-bearing page (`rlm-core-rlm`, 14 claims) rather
+than exhaustively across all 118 claims in the silo — see the batch-completion note at the end of this
+ingest run for the reasoning. No refutations found on the spot-checked page; two claims were honestly
+docstring/signature-grounded rather than directly-observed-in-full (`format_iteration`'s truncation
+behavior, `_subcall`'s recursive-spawn branch), both within the skill's own grounding rules.
+
+## [2026-08-12] ingest-code | Retrodict
+
+Ingested `ryanbbrown/Retrodict` (submodule, pinned @ `71672e8e5a`, **no license — all rights reserved,
+gitlink only, no content vendored**) — the second of four repos from the 2026-08-10 video batch, and the
+sharpest verification-discipline instance in the set: every hypothesis about a game mechanic is replayed
+against the log before it earns a live action, and every planned action carries a checked forward
+prediction. 326 symbols across 14 modules (100% represented, 23/23 classes); 3 code concept pages + 2
+doc-concept pages (`retrodiction-methodology`, `context-reset-and-playbook`). `wikify finalize` green on
+the first pass. Adversarial-verify: direct source read (not packet-only) on `arc3-runner.py` (the
+highest-claim page, 740 lines, read in full) and `arc3-plan_parser.py` (148 lines, read in full) against
+the corresponding wiki pages' claims — found and fixed one real inaccuracy (`_record_escalation` was
+described as computing the escalation tier; it only *logs* a tier change decided by
+`_escalation_directive`). `arc3-logwriter.md`'s claims rest on the packet's own quoted docstrings only (not
+independently re-read against the 194-line source), a shallower verification tier than the other two pages
+in this silo — flagged rather than silently treated as equally checked.
+
+## [2026-08-12] ingest-code | continual-harness
+
+Ingested `sethkarten/continual-harness` (submodule, pinned @ `bbab97ad73`) — the third of four repos from
+the 2026-08-10 video batch, and the implementation behind
+[`sources/continual-harness.md`](sources/continual-harness.md). 4,582 symbols across 137 modules (100%
+represented, 210/210 classes); 26 code concept pages + 2 doc-concept pages
+(`reset-free-harness-evolution`, `immutable-base-prompt`).
+
+**Tooling note worth carrying forward.** Auto-discovery (SCIP centrality ranking) picked 24 concepts, all
+Pokémon-environment infrastructure (memory readers, emulators, map stitchers, server routes) — it missed
+`agents/utils/harness_evolver.py`, the file implementing the paper's actual headline contribution, entirely.
+Added as explicit `## Concepts` seeds in `config/continual-harness.md` (`agents-utils-harness_evolver`,
+`agents-tools-registry`) per the `wikify-ingest-repo` skill's guidance. Even seeded this way, both packets'
+own `Seeds` line read "(discover: top-importance symbols — no seeds resolved)" — the module-path-style seed
+name did not restrict discovery to that file's own symbols, and both packets fell back to the same generic
+top-importance symbol set as the auto-discovered ones. Practical consequence: both concept pages
+(`agents-utils-harness_evolver.md`, `agents-tools-registry.md`) were written from **direct source reading**
+(`harness_evolver.py`, `agents/tools/registry.py`, read in full) rather than from their packets, and their
+citations had to route through whichever in-subgraph symbol was actually available (mostly
+`PokeAgent.run_step`, a genuine caller) rather than the methods the prose is actually about — `wikify
+finalize`'s citation linter correctly rejected the first draft's direct citations (26 → 19 → 8 → 3 → 0
+errors across the repair loop) since those methods were absent from the packets' own subgraphs even though
+they resolve in the full SCIP index. Worth a `wikify` tool fix: symbol-level seeds (not just module-path
+seeds) should restrict discovery to symbols *defined in* the named file, not fall back to global
+top-importance ranking when the module-path form doesn't match a recognized seed pattern.
+
+**Pages updated**: `index.md` (registers this silo with the same disclosure).
+
+## [2026-08-12] ingest-code | prime-agent
+
+Ingested `PrimeIntellect-ai/prime-agent` (submodule, pinned @ `a3b3e75349`) — the fourth and last repo from
+the 2026-08-10 video batch, and the implementation behind
+[`sources/prime-agent-launch.md`](sources/prime-agent-launch.md). 21,067 symbols across 774 modules (100%
+represented, 1984/1984 classes); 25 code concept pages + 3 doc-concept pages
+(`rlm-continual-harness-composition`, `long-running-agent-continuity`, `prime-agent-trust-model`). This is
+the largest silo ingested so far by module count — a TypeScript monorepo (`packages/coding-agent`,
+`packages/agent`, `packages/ai`, `packages/tui`) — and confirmed by direct source-reading (`README.md`
+Acknowledgements) to be built on `earendil-works/pi`, not `badlogic/pi-mono` as the README's header link
+row might suggest at a glance; the two repos are unrelated despite the pi-mono link appearing alongside
+Verifiers/PRIME-RL.
+
+**TypeScript SCIP indexing note worth carrying forward.** `index_shards` (file-level sharding, used
+successfully to scope large Python repos in earlier silos) totally breaks indexing for a TypeScript repo
+with a project-reference `tsconfig.json`: `wikify prepare` expands the glob into individual `.ts` file
+paths and invokes `scip-typescript` once per file, and `scip-typescript` cannot parse a single `.ts` file
+path as its own `tsconfig.json` root — every shard failed silently, and `wikify prepare` reported an
+empty index. Root-caused by running `scip-typescript index` manually with different argument shapes: a
+single-file target treats that file as `tsconfig.json` and fails to parse it (`TS1005`); `--cwd
+packages/coding-agent` fails because that subdirectory has no `tsconfig.json` (only `tsconfig.build.json`);
+running unsharded from the repo root succeeds in ~39s using the top-level `tsconfig.json`'s project
+references. Fix: dropped `index_shards` from `config/prime-agent.md` entirely and used `coverage_collapse`
+instead (which only affects the coverage-report grouping, not indexing) to keep the coverage report legible
+despite `examples/`, `themes/`, and `packages/tui/` contributing thousands of low-signal symbols.
+Indexing also required `npm install --no-audit --no-fund --ignore-scripts` at the repo root first (351
+packages) for type resolution to succeed at all.
+
+**Same seeded-symbol-resolution limitation as continual-harness, once.** The `refinement.ts` config seed
+(`packages-coding-agent-src-core-refinement-refinement.ts`) hit the same tool limitation already logged for
+continual-harness's Python seeds — its packet's `Seeds` line failed to resolve to that file's own symbols,
+falling back to generic top-importance discovery. `kernel/index.ts`, the other explicit seed, was already
+auto-discovered independently and did not hit this. `refinement.ts`'s concept page was written from direct
+source reading (`packages/coding-agent/src/core/refinement/refinement.ts`, read in full) rather than its
+packet, using unlinked citations for its own symbols and routing the linter's rule-2 requirement through
+genuinely in-subgraph references. Post-finalize spot-check (this ingest's verify pass) re-read the same
+source file against all 5 load-bearing claims on that page — optimistic-concurrency comparison against
+`baselineState`, the exact `"entry changed during refinement planning"` / `"entry not found"` / `"entry
+already exists"` error strings, the `before?.scope ?? options.scope ?? "local"` fallback chain, the
+`version = before ? before.version + 1 : 1` bump, and `rollbackProposal`'s reverse-and-invert structure —
+all confirmed accurate. `wikify finalize` itself passed clean on the first run (0 citation errors across
+all 25 pages), unlike continual-harness's multi-round repair loop.
+
+**Pages updated**: `index.md` (registers this silo).
+
+## [2026-08-12] ingest | video batch — RLM / Continual Harness / ARC-AGI-3 cluster (closing)
+
+Closes the batch opened by "ingest articles and repositories mentioned in [this
+video](https://www.youtube.com/watch?v=k2rkLm1eA9k)" — 8 source pages and 4 code silos, connected and
+synthesized. Full accounting:
+
+**Sources** (`wiki/sources/`, all new): [2025-context-rot](2025-context-rot.md),
+[arc-agi-3](arc-agi-3.md), [recursive-language-models](recursive-language-models.md),
+[pokeagent-challenge](pokeagent-challenge.md), [continual-harness](continual-harness.md),
+[schema-harness](schema-harness.md), [retrodict](retrodict.md), [prime-agent-launch](prime-agent-launch.md).
+Two corrections made while cross-checking these against each other and against grounded code: (1)
+`pokeagent-challenge.md` records that the source video's description links the *wrong* paper — the
+self-refining-harness mechanism it narrates is `continual-harness.md`'s paper, under the same lead author,
+not the PokéAgent benchmark paper itself; (2) `prime-agent-launch.md`'s claim that a "Pi-mono" benchmark
+comparison "confirms Prime Agent's README-stated lineage from `badlogic/pi-mono`" was flagged
+`[!warning]` and corrected after direct code-silo grounding: the actual README Acknowledgements state Prime
+Agent is built on `earendil-works/pi`, a different project `badlogic/pi-mono` is unrelated to beyond
+appearing in the same header link row.
+
+**Code silos** (`wiki/code/`, all new, all `wikify finalize` green at 100% coverage): `rlm` (1,753 symbols/
+121 modules, 21 concept + 3 doc-concept pages), `Retrodict` (326 symbols/14 modules, 3 concept + 2
+doc-concept pages), `continual-harness` (4,582 symbols/137 modules, 26 concept + 2 doc-concept pages),
+`prime-agent` (21,067 symbols/774 modules, 25 concept + 3 doc-concept pages — the largest silo in this wiki
+by module count). Per-silo tooling notes and repair-loop accounting are in each silo's own log entry above.
+One thing worth flagging here because it wasn't caught until the connect step: **all four silos' `finalize`
+runs assembled `index.md` but never wrote `overview.md`**, the hand-authored landing page `wikify connect`'s
+`discover_silos` requires (it globs for `overview.md`, not `index.md`) — and the one every `wiki/index.md`
+entry for these silos already linked to. All four `overview.md` files were written retroactively this pass,
+after `wikify connect` silently reported "8 silo(s)" (the pre-existing count) with zero candidates from any
+of the four new silos, which is what surfaced the gap. Worth carrying forward as a checklist item for future
+code-silo ingests: **write `overview.md` before calling `wikify connect`**, not after.
+
+**Connect.** Two of this wiki's cross-paper vocabulary concepts gained new implementations after adding
+explicit `concepts:` frontmatter tags (missed during the original per-silo ingest passes, also only caught
+via the connect step's zero-candidate report): `self-referential-code-rewriting` — `dgm` (3 pages) plus now
+`continual-harness`'s `agents-utils-harness_evolver` and `prime-agent`'s `refinement.ts`, a second
+independently-engineered implementation of the same target class; `verification-independence` — `openrsi`
+(9 pages) plus now all three `Retrodict` concept pages (`arc3-runner`, `arc3-plan_parser`, `arc3-logwriter`),
+retrodiction-before-action and forward-prediction-checked-after-action both being instances of "make the
+evidence an artifact, not an assertion." Also resolved: `prime-agent`↔`pi-autoresearch-vkf` is not a
+fork/derivative relationship (both are separate repos targeting the same `earendil-works/pi` coding-agent
+framework — `pi-autoresearch-vkf` is loadable as an extension into a host like `prime-agent` via the
+`ExtensionAPI`/package-manager mechanism `prime-agent`'s own silo now documents) — noted in both overview
+pages.
+
+**Topic synthesis.** [`wiki-driven-autoresearch-loop`](../topics/wiki-driven-autoresearch-loop.md) gained a
+new "long-horizon interactive-game agents" section: a third domain (after model-quality and model-performance
+autoresearch) that independently converges on the same two load-bearing lessons — a persistent, replayable
+artifact as ground truth over an agent's own live/context-window state (Retrodict's log, Continual
+Harness's/Prime Agent's reset-free harness editing), and falsifying a hypothesis cheaply before committing a
+real action (Retrodict's retrodiction, Schema's guarded action queues) — with no cross-citation between this
+cluster and the TPU-performance instances already on that page. [`autoresearch`](../topics/autoresearch.md)'s
+"Self-improving research loops" section gained a disambiguating note: Continual Harness/Prime Agent's
+harness self-editing is the same *target class* as DGM (self-referential-code-rewriting) but closes its loop
+within one episode of interactive play, not across independent research runs judged by a fixed metric — no
+keep/discard ratchet, no archive, no benchmark-gated acceptance.
+
+**Pages updated this closing entry**: `index.md` (added all 8 source-page entries to Papers/Sources, which
+had been omitted from the per-source ingest passes — another gap the closing pass caught; updated the
+`self-referential-code-rewriting` cross-paper-concepts bullet), `sources/prime-agent-launch.md` (the
+Pi-mono correction above), `topics/wiki-driven-autoresearch-loop.md`,
+`topics/autoresearch.md`, and `overview.md` + one `concepts:` frontmatter tag in each of the four new code
+silos.

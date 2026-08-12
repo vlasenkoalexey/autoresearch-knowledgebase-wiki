@@ -152,4 +152,7 @@ Grounded implementations of **verification-independence** across the ingested re
 - [openrsi](../code/openrsi/concepts/OpenMLE-Evo-tts_search-eval_utils.md) — Grading OpenMLE-Evo runs — leaderboard percentiles, Kaggle-style medals, and multi-epoch summaries
 - [openrsi](../code/openrsi/concepts/OpenMLE-Gym-builder_core-utils-nodes.md) — NodeExecutor — the seven-phase OpenMLE-Gym task-builder pipeline
 - [openrsi](../code/openrsi/concepts/OpenMLE-Gym-openmle_gym-process_runner.md) — The process runner — OpenMLE-Gym's non-throwing sandboxed task executor
+- [Retrodict](../code/Retrodict/concepts/arc3-logwriter.md) — LogWriter / StepRecord — the log as replayable ground truth
+- [Retrodict](../code/Retrodict/concepts/arc3-plan_parser.md) — PlannedAction / ParsedPlan — where the per-action prediction is born
+- [Retrodict](../code/Retrodict/concepts/arc3-runner.md) — GameRunner — the retrodiction-gated play loop
 <!-- connect:auto:end -->

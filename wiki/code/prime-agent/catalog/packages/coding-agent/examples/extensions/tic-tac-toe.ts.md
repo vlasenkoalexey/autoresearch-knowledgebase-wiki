@@ -1,0 +1,103 @@
+---
+title: 'Module: packages/coding-agent/examples/extensions/tic-tac-toe.ts'
+type: catalog
+provenance: extracted
+module: packages/coding-agent/examples/extensions/tic-tac-toe.ts
+status: fresh
+symbol_base: scip-typescript npm @earendil-works/pi-coding-agent 0.7.2 examples/extensions/`tic-tac-toe.ts`/
+symbols:
+  reconstructState: reconstructState().
+  gameState: gameState.
+  renderBoard: renderBoard().
+  getBoardDetails: getBoardDetails().
+  renderVisualBoard: renderVisualBoard().
+  createInitialState: createInitialState().
+  TicTacToeComponent.handleInput: TicTacToeComponent#handleInput().
+  TicTacToeComponent.render: TicTacToeComponent#render().
+  GameState.status: GameState#status.
+  TicTacToeComponent.state: TicTacToeComponent#state.
+  buildCellContent: buildCellContent().
+  BannerMessageComponent.render: BannerMessageComponent#render().
+  GameOverMessageComponent.render: GameOverMessageComponent#render().
+  GameState.agentCursorRow: GameState#agentCursorRow.
+  GameState.agentCursorCol: GameState#agentCursorCol.
+  BannerMessageComponent.-constructor: BannerMessageComponent#`<constructor>`().
+  Cell: Cell#
+  GameOverMessageComponent.-constructor: GameOverMessageComponent#`<constructor>`().
+  GameState.board: GameState#board.
+  TicTacToeComponent.updateState: TicTacToeComponent#updateState().
+  GameState.currentTurn: GameState#currentTurn.
+  TicTacToeComponent.-constructor: TicTacToeComponent#`<constructor>`().
+  BoardDetails: BoardDetails#
+  cellFgCode: cellFgCode().
+  renderBoardSnapshot: renderBoardSnapshot().
+  centerPad: centerPad().
+  borderFgCode: borderFgCode().
+  checkWin: checkWin().
+  GameState.userMark: GameState#userMark.
+  GameOverMessageComponent.theme: GameOverMessageComponent#theme.
+  component: component.
+  GameState.agentMark: GameState#agentMark.
+  GameState.userCursorRow: GameState#userCursorRow.
+  GameState.userCursorCol: GameState#userCursorCol.
+  TicTacToeComponent.version: TicTacToeComponent#version.
+  gameActive: gameActive.
+  BoardDetails.board: BoardDetails#board.
+  GameStatus: GameStatus#
+  GameState: GameState#
+  TicTacToeComponent.tui: TicTacToeComponent#tui.
+  BoardDetails.status: BoardDetails#status.
+  BoardRenderOpts.board: BoardRenderOpts#board.
+  BannerMessageComponent.details: BannerMessageComponent#details.
+  GameOverMessageComponent.details: GameOverMessageComponent#details.
+  AGENT_CURSOR_HOME_ROW: AGENT_CURSOR_HOME_ROW.
+  AGENT_CURSOR_HOME_COL: AGENT_CURSOR_HOME_COL.
+  TicTacToeComponent.tui.typeLiteral249.requestRender: TicTacToeComponent#tui.typeLiteral249:requestRender.
+  getWinLine: getWinLine().
+  boardToAscii: boardToAscii().
+  BannerMessageComponent.theme: BannerMessageComponent#theme.
+  GameOverMessageComponent.status: GameOverMessageComponent#status.
+  borderFgCode.adjacent-ReadonlyArray.typeLiteral82.cell: borderFgCode().(adjacent)ReadonlyArray:typeLiteral82:cell.
+  TicTacToeComponent: TicTacToeComponent#
+  TicTacToeError.-constructor: TicTacToeError#`<constructor>`().
+  BoardDetails.agentCursorRow: BoardDetails#agentCursorRow.
+  BoardDetails.agentCursorCol: BoardDetails#agentCursorCol.
+  BoardDetails.currentTurn: BoardDetails#currentTurn.
+  CELL_WIDTH: CELL_WIDTH.
+  RESET: RESET.
+  BoardRenderOpts.maxWidth: BoardRenderOpts#maxWidth.
+  TicTacToeComponent.onClose: TicTacToeComponent#onClose.
+  TicTacToeComponent.cachedWidth: TicTacToeComponent#cachedWidth.
+  BannerMessageComponent.title: BannerMessageComponent#title.
+  SAVE_TYPE: SAVE_TYPE.
+  TicTacToeComponent.invalidate: TicTacToeComponent#invalidate().
+  BannerMessageComponent: BannerMessageComponent#
+  GameOverMessageComponent: GameOverMessageComponent#
+  CELL_HEIGHT: CELL_HEIGHT.
+  BoardRenderOpts.cursor: BoardRenderOpts#cursor.
+  TicTacToeComponent.onUserPlay: TicTacToeComponent#onUserPlay.
+  TicTacToeComponent.cachedLines: TicTacToeComponent#cachedLines.
+  TicTacToeComponent.cachedVersion: TicTacToeComponent#cachedVersion.
+  BannerMessageComponent.expanded: BannerMessageComponent#expanded.
+  MOVE_MESSAGE_TYPE: MOVE_MESSAGE_TYPE.
+  GAME_OVER_MESSAGE_TYPE: GAME_OVER_MESSAGE_TYPE.
+  FG_CODE_X: FG_CODE_X.
+  FG_CODE_O: FG_CODE_O.
+  FG_CODE_WIN: FG_CODE_WIN.
+  GLYPH_X: GLYPH_X.
+  GLYPH_O: GLYPH_O.
+  DIM: DIM.
+  borderFgCode.adjacent-ReadonlyArray.typeLiteral82.isWin: borderFgCode().(adjacent)ReadonlyArray:typeLiteral82:isWin.
+  BoardRenderOpts: BoardRenderOpts#
+  BoardRenderOpts.cursor.typeLiteral101.row: BoardRenderOpts#cursor.typeLiteral101:row.
+  BoardRenderOpts.cursor.typeLiteral101.col: BoardRenderOpts#cursor.typeLiteral101:col.
+  BoardRenderOpts.cursor.typeLiteral101.owner: BoardRenderOpts#cursor.typeLiteral101:owner.
+  delay: delay().
+  TicTacToeError: TicTacToeError#
+  TicTacToeComponent.-constructor-.tui-typeLiteral250.requestRender: TicTacToeComponent#`<constructor>`().(tui)typeLiteral250:requestRender.
+  BannerMessageComponent.invalidate: BannerMessageComponent#invalidate().
+  GameOverMessageComponent.invalidate: GameOverMessageComponent#invalidate().
+---
+# Module: [`packages/coding-agent/examples/extensions/tic-tac-toe.ts`](../../../../../../../../raw/code/prime-agent/packages/coding-agent/examples/extensions/tic-tac-toe.ts)
+
+> **Collapsed catalog** (91 symbols) — anchors above resolve for citations; detailed member listing omitted (`coverage_collapse`). See the source link above, or the curated codebase page, for depth.

@@ -112,4 +112,6 @@ Grounded implementations of **self-referential-code-rewriting** across the inges
 - [dgm](../code/dgm/concepts/coding_agent.md) — AgenticSystem — the coding agent DGM evolves (and that edits itself)
 - [dgm](../code/dgm/concepts/prompts-self_improvement_prompt.md) — self_improvement_prompt — diagnosing the agent from its own failures and its own code
 - [dgm](../code/dgm/concepts/self_improve_step.md) — self_improve — one self-referential edit-and-validate attempt
+- [continual-harness](../code/continual-harness/concepts/agents-utils-harness_evolver.md) — HarnessEvolver — the Refiner, CRUD over prompt/subagents/skills/memory
+- [prime-agent](../code/prime-agent/concepts/packages-coding-agent-src-core-refinement-refinement.ts.md) — refinement.ts — /refine's CRUD engine with optimistic concurrency and rollback
 <!-- connect:auto:end -->

@@ -1,0 +1,94 @@
+---
+title: 'Module: packages/tui/src/utils.ts'
+type: catalog
+provenance: extracted
+module: packages/tui/src/utils.ts
+status: fresh
+symbol_base: scip-typescript npm @earendil-works/pi-tui 0.7.2 src/`utils.ts`/
+symbols:
+  visibleWidth: visibleWidth().
+  truncateToWidth: truncateToWidth().
+  wrapTextWithAnsi: wrapTextWithAnsi().
+  AnsiCodeTracker.getActiveCodes: AnsiCodeTracker#getActiveCodes().
+  AnsiCodeTracker.process: AnsiCodeTracker#process().
+  extractSegments: extractSegments().
+  AnsiCodeTracker.reset: AnsiCodeTracker#reset().
+  AnsiCodeTracker.hasActiveCodes: AnsiCodeTracker#hasActiveCodes().
+  breakLongWord: breakLongWord().
+  visibleContentSpan: visibleContentSpan().
+  stripAnsi: stripAnsi().
+  sliceByColumn: sliceByColumn().
+  sliceWithWidth.typeLiteral541.width: sliceWithWidth().typeLiteral541:width.
+  truncateFragmentToWidth: truncateFragmentToWidth().
+  createAnsiCodeExtractor: createAnsiCodeExtractor().
+  wrapSingleLine: wrapSingleLine().
+  graphemeWidth: graphemeWidth().
+  normalizeTerminalOutput: normalizeTerminalOutput().
+  isPunctuationChar: isPunctuationChar().
+  updateTrackerFromText: updateTrackerFromText().
+  AnsiCode.code: AnsiCode#code.
+  isWhitespaceChar: isWhitespaceChar().
+  AnsiCodeTracker.getLineEndReset: AnsiCodeTracker#getLineEndReset().
+  extractControlStringEnd: extractControlStringEnd().
+  extractAnsiCode: extractAnsiCode().
+  formatOsc8Hyperlink: formatOsc8Hyperlink().
+  applyBackgroundToLine: applyBackgroundToLine().
+  segmenter: segmenter.
+  AnsiCode.length: AnsiCode#length.
+  extractAnsiCodeAt: extractAnsiCodeAt().
+  AnsiCodeTracker.activeHyperlink: AnsiCodeTracker#activeHyperlink.
+  splitIntoTokensWithAnsi: splitIntoTokensWithAnsi().
+  AnsiCodeTracker.fgColor: AnsiCodeTracker#fgColor.
+  AnsiCodeTracker.bgColor: AnsiCodeTracker#bgColor.
+  AnsiScanState: AnsiScanState#
+  truncateFragmentToWidth.typeLiteral9.width: truncateFragmentToWidth().typeLiteral9:width.
+  extractAnsiEndAt: extractAnsiEndAt().
+  getSegmenter: getSegmenter().
+  truncateFragmentToWidth.typeLiteral9.text: truncateFragmentToWidth().typeLiteral9:text.
+  createAnsiEndExtractor: createAnsiEndExtractor().
+  parseOsc8Hyperlink: parseOsc8Hyperlink().
+  AnsiCodeTracker.bold: AnsiCodeTracker#bold.
+  AnsiCodeTracker.underline: AnsiCodeTracker#underline.
+  AnsiCodeTracker.clear: AnsiCodeTracker#clear().
+  pooledStyleTracker: pooledStyleTracker.
+  widthCache: widthCache.
+  AnsiCodeTracker: AnsiCodeTracker#
+  AnsiCodeTracker.dim: AnsiCodeTracker#dim.
+  AnsiCodeTracker.italic: AnsiCodeTracker#italic.
+  AnsiCodeTracker.blink: AnsiCodeTracker#blink.
+  AnsiCodeTracker.inverse: AnsiCodeTracker#inverse.
+  AnsiCodeTracker.hidden: AnsiCodeTracker#hidden.
+  AnsiCodeTracker.strikethrough: AnsiCodeTracker#strikethrough.
+  ActiveHyperlink.terminator: ActiveHyperlink#terminator.
+  sliceWithWidth.typeLiteral541.text: sliceWithWidth().typeLiteral541:text.
+  cacheControlStringEnds: cacheControlStringEnds().
+  formatOsc8Close: formatOsc8Close().
+  isPrintableAscii: isPrintableAscii().
+  finalizeTruncatedResult: finalizeTruncatedResult().
+  AnsiCode: AnsiCode#
+  ControlStringEnds: ControlStringEnds#
+  AnsiScanState.controlStringEnds: AnsiScanState#controlStringEnds.
+  Osc8Terminator: Osc8Terminator#
+  ActiveHyperlink: ActiveHyperlink#
+  sliceWithWidth: sliceWithWidth().
+  extractSegments.typeLiteral575.beforeWidth: extractSegments().typeLiteral575:beforeWidth.
+  extractSegments.typeLiteral575.before: extractSegments().typeLiteral575:before.
+  extractSegments.typeLiteral575.after: extractSegments().typeLiteral575:after.
+  extractSegments.typeLiteral575.afterWidth: extractSegments().typeLiteral575:afterWidth.
+  couldBeEmoji: couldBeEmoji().
+  zeroWidthRegex: zeroWidthRegex.
+  leadingNonPrintingRegex: leadingNonPrintingRegex.
+  rgiEmojiRegex: rgiEmojiRegex.
+  WIDTH_CACHE_SIZE: WIDTH_CACHE_SIZE.
+  THAI_LAO_AM_REGEX: THAI_LAO_AM_REGEX.
+  THAI_LAO_AM_GLOBAL_REGEX: THAI_LAO_AM_GLOBAL_REGEX.
+  TAB_REGEX: TAB_REGEX.
+  TAB_GLOBAL_REGEX: TAB_GLOBAL_REGEX.
+  ActiveHyperlink.params: ActiveHyperlink#params.
+  ActiveHyperlink.url: ActiveHyperlink#url.
+  PUNCTUATION_REGEX: PUNCTUATION_REGEX.
+  COMMON_CSI_REGEX: COMMON_CSI_REGEX.
+---
+# Module: [`packages/tui/src/utils.ts`](../../../../../../../raw/code/prime-agent/packages/tui/src/utils.ts)
+
+> **Collapsed catalog** (82 symbols) — anchors above resolve for citations; detailed member listing omitted (`coverage_collapse`). See the source link above, or the curated codebase page, for depth.

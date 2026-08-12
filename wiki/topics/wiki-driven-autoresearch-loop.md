@@ -171,6 +171,48 @@ overhead and operating-point mismatch often enough that skipping the step ships 
 general form is: **a result measured on a component is a hypothesis about the system, not a result about
 it.**
 
+## A third domain: long-horizon interactive-game agents
+
+The two instances above optimize model *quality* and model *performance*. A 2026-08-12 ingest batch (RLM,
+Continual Harness, Schema, Retrodict, Prime Agent — all playing ARC-AGI-3 or Pokémon) is a third domain:
+optimizing **one agent's own play across a single long-horizon episode**, not a population of experiments
+across many runs. It arrived at strikingly similar answers to this page's two load-bearing lessons —
+independently, with no citation back to either instance above.
+
+**"A persistent artifact, not context-window memory, is the substrate" reappears as "the log is ground
+truth, not the agent's own live state."** [Retrodict](../sources/retrodict.md)'s
+[`LogWriter`](../code/Retrodict/concepts/arc3-logwriter.md) writes an append-only, exactly-replayable
+`StepRecord` log; [`GameRunner._restore`](../code/Retrodict/concepts/arc3-runner.md) rebuilds the agent's
+entire understanding of a game from that log alone after a **context reset that is designed-in, not a
+failure mode** — past a 150K-input-token threshold, the conversation is dropped entirely and the agent
+resumes pointed only at two persistent workspace files (a curated playbook + the raw log) — arrived at
+independently of, but structurally identical to, this page's sub-wiki-scoping and "pasted content, never
+paths" lessons above. Continual Harness's reset-free mid-episode Refiner
+([`agents-utils-harness_evolver`](../code/continual-harness/concepts/agents-utils-harness_evolver.md)) and
+Prime Agent's TypeScript reimplementation
+([`refinement.ts`](../code/prime-agent/concepts/packages-coding-agent-src-core-refinement-refinement.ts.md))
+generalize the same substrate idea one step further: not just re-deriving state from a log after a reset,
+but editing the harness itself — prompt, sub-agents, skills, memory — **without ever needing a reset at
+all**.
+
+**Falsifiability-before-commitment reappears as retrodiction and guarded action queues.** Retrodict replays
+a hypothesis against the recorded log *before* it can spend a real action — a free falsification check,
+structurally the same move as the TPU wiki's HLO/AOT pre-filters refuting a hypothesis on a compiler pass
+before a real run. [Schema](../sources/schema-harness.md) generalizes it further: planned action sequences
+are invalidated the instant a prediction from the current world model mismatches reality, rather than
+executing a stale plan to the end — the same "verify the mechanism fired, not just that a scalar moved"
+instinct [`verification-independence`](../concepts/verification-independence.md) documents for the TPU
+wiki's kernel lane, independently re-derived for a single agent checking its own hypotheses rather than an
+external grader checking a proposer.
+
+> [!inferred] None of these five sources cites either instance in this page's original table, or each
+> other's shared ancestry beyond the Continual-Harness/Prime-Agent lineage they do acknowledge. That three
+> unrelated projects (TPU performance autoresearch, ARC-AGI-3 game-playing harnesses, and — per
+> [`verification-independence`](../concepts/verification-independence.md) — Sakana AI's AI CUDA Engineer
+> post-mortem) converge on "checkable artifact over trusted live state" and "falsify cheaply before
+> committing" is evidence these are load-bearing properties of *any* long-horizon autonomous loop, not
+> incidental engineering choices specific to one domain.
+
 ## See also
 - [karpathy/autoresearch — overview](../code/autoresearch/overview.md)
 - [tpu_performance_autoresearch_wiki — methodology summary](../sources/tpu-performance-autoresearch-wiki.md)
@@ -182,3 +224,7 @@ it.**
 - [`verification-independence`](../concepts/verification-independence.md) ·
   [`llm-kernel-generation`](../concepts/llm-kernel-generation.md) — the kernel lane against the rest of the
   kernel-optimization field
+- [Recursive Language Models](../sources/recursive-language-models.md) ·
+  [Continual Harness](../sources/continual-harness.md) · [Retrodict](../sources/retrodict.md) ·
+  [Schema](../sources/schema-harness.md) · [Prime Agent launch](../sources/prime-agent-launch.md) — the
+  long-horizon interactive-game third domain discussed above

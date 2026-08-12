@@ -64,6 +64,19 @@ or reinforcement signals compound across iterations. Karpathy's minimal `autores
 (edit-train-keep/discard on a fixed budget) — already ingested as a code repo, see
 [autoresearch overview](../code/autoresearch/overview.md) — is the minimal single-branch instance.
 
+> [!inferred] **A neighboring but distinct genre, worth disambiguating here.** [Continual
+> Harness](../sources/continual-harness.md) and its TypeScript reimplementation in [Prime
+> Agent](../sources/prime-agent-launch.md) also perform CRUD self-editing of an agent's own operating
+> apparatus (prompt, sub-agents, skills, memory) — the same *target class* as DGM below, tagged
+> [`self-referential-code-rewriting`](../concepts/self-referential-code-rewriting.md) — but the loop they
+> close is **within one long-horizon episode of interactive play** (a Pokémon run, an ARC-AGI-3 game), not
+> across many independent research runs judged by a fixed metric. There is no keep/discard ratchet, no
+> archive, and no benchmark re-score gating each edit — a Refiner's edits apply directly, bounded only by
+> hard truncation/turn caps. See [`wiki-driven-autoresearch-loop`](wiki-driven-autoresearch-loop.md)'s
+> "long-horizon interactive-game agents" section for the full cluster (Continual Harness, Prime Agent, plus
+> [Schema](../sources/schema-harness.md) and [Retrodict](../sources/retrodict.md), which don't self-modify
+> their harness at all but land in the same domain).
+
 ### Darwin Gödel Machine — archive-based, empirically-validated self-modification
 
 The [Darwin Gödel Machine](../sources/darwin-godel-machine.md) (DGM, arXiv:2505.22954) splices two

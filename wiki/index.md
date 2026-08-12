@@ -125,6 +125,53 @@ One summary page (`wiki/sources/<paper>.md`) per ingested paper; the raw source 
   its consensus mechanism, on inspection, is same-family agents corroborating each other after seeing one
   another's answers, not independent verification.
 
+- [**Context Rot**](sources/2025-context-rot.md) — Chroma's controlled study isolating input *length* as the
+  sole variable across 18 frontier models: accuracy degrades well before a context window fills, degrades
+  faster the less semantically similar a question is to its answer, and — counterintuitively — a
+  logically-coherent haystack scores *worse* than a shuffled one. The empirical premise the whole
+  Recursive-Language-Models line of work below is built to answer.
+- [**ARC-AGI-3**](sources/arc-agi-3.md) — the ARC Prize Foundation's third-generation interactive-game
+  benchmark and its **RHAE** metric (`min(1.0, human_baseline_actions/agent_actions)²`, squared to punish
+  brute-force search) — the metric every result in the Schema/Retrodict/Prime-Agent cluster below is quoted
+  against. Frontier systems scored below 1% before that cluster's harness work pushed self-reported numbers
+  to 95–99%+ months later.
+- [**Recursive Language Models**](sources/recursive-language-models.md) (Zhang, Kraska, Khattab; MIT CSAIL) —
+  the paradigm this whole batch turns on: bind a long prompt as a variable in a persistent REPL instead of
+  pasting it into the context window, and let the model write code against it — including code that
+  recursively calls a sub-model over a slice, as an ordinary function call. +28.4–33.3% relative on OOLONG;
+  91.3% vs. 0% (base model exceeds its context window) on 6–11M-token BrowseComp-Plus. Implementation
+  grounded at [`code/rlm/overview.md`](code/rlm/overview.md).
+- [**The PokéAgent Challenge**](sources/pokeagent-challenge.md) (Karten et al., 31 authors; NeurIPS 2025
+  Competition Track) — the competitive-benchmark predecessor (partial observability + game-theoretic
+  reasoning + long-horizon planning, split across a battling track and an RPG-speedrunning track) whose
+  reference framework, under the same lead author, later grew into Continual Harness below. A benchmark/
+  competition-design paper, not the self-refining-harness paper itself — recorded to correct a
+  category-error citation the source video makes.
+- [**Continual Harness**](sources/continual-harness.md) (Karten et al.; Princeton / ARISE / Google DeepMind)
+  — automates the human-in-the-loop harness-rewriting that let **Gemini Plays Pokémon** finish Pokémon Blue,
+  Yellow Legacy (hard mode), and Crystal: a Refiner performs reset-free, mid-episode CRUD edits across four
+  components (prompt, sub-agents, skills, memory) on an adaptive schedule, with the base system prompt
+  itself the one thing never edited. Implementation grounded at
+  [`code/continual-harness/overview.md`](code/continual-harness/overview.md).
+- [**Schema**](sources/schema-harness.md) (Impossible Research — UC Berkeley/CMU-affiliated) — the harness
+  that crossed the ARC-AGI-3 human-expert baseline first: makes the model "behave like a physicist" —
+  ground objects/relations/goals from observation, propose and backtest hypotheses as an editable symbolic
+  (Python) world model, and search for hypotheses that survive the *whole* interaction history, not just
+  the latest observation. ~99% RHAE (Opus 4.8 + Fable 5) / 95.35% (GPT-5.6 Sol), both self-reported.
+- [**Retrodict**](sources/retrodict.md) (Ryan Brown, independent) — built in ~2 weeks on Brown's own
+  ThinHarness; plays "like a scientist with a lab notebook," checking every hypothesis against a recorded
+  log via **retrodiction** before it can spend a real action. 99.86% mean RHAE, all 25 public games and all
+  183 levels solved, at 5.5× fewer tokens than a same-price/same-model competitor. This wiki's clearest
+  relative of [`verification-independence`](concepts/verification-independence.md) applied *inside* a
+  single agent's own reasoning. Implementation grounded at
+  [`code/Retrodict/overview.md`](code/Retrodict/overview.md).
+- [**Prime Agent — launch post**](sources/prime-agent-launch.md) (Prime Intellect, 2026-08-05/06) — the
+  product this batch converges on: RLM and Continual Harness shipped together as one general-purpose coding/
+  research agent. 95.5% RHAE Best@1 on ARC-AGI-3 (self-reported; a linked scorecard shows 95.24%) against a
+  95.4% human-expert baseline. Every number on this page is self-reported and Schema/Retrodict both scored
+  higher, earlier, unmentioned by this post. Implementation grounded at
+  [`code/prime-agent/overview.md`](code/prime-agent/overview.md).
+
 ## Topics
 Synthesized prose pages (`wiki/topics/<topic>.md`) — methods, concepts, entities, comparisons that span
 papers (e.g. AI-scientist systems, NAS, learned optimizers, kernel auto-tuning).
@@ -319,6 +366,74 @@ concept/catalog page and cite the catalog anchor; drop to the pinned source for 
   connect`'s automated "grounded implementations" lists; instead it is connected via hand-written hub
   prose on [`concepts/closed-loop-experiment-design.md`](concepts/closed-loop-experiment-design.md) — the
   only vocabulary concept it plausibly implements, and only at the documentation level.
+- [**rlm**](code/rlm/overview.md) — Alex Zhang's own reference implementation of
+  [Recursive Language Models](sources/recursive-language-models.md): context-as-a-REPL-variable
+  ([`RLM.completion`](code/rlm/concepts/rlm-core-rlm.md)), a socket-based
+  ([`LMHandler`](code/rlm/concepts/rlm-core-lm_handler.md)) client that lets sandboxed code reach a model
+  across a machine boundary, seven interchangeable execution backends split into non-isolated
+  ([`LocalREPL`](code/rlm/concepts/rlm-environments-local_repl.md),
+  [`IPythonREPL`](code/rlm/concepts/rlm-environments-ipython_repl.md),
+  [`DockerREPL`](code/rlm/concepts/rlm-environments-docker_repl.md)) and isolated
+  ([`ModalREPL`](code/rlm/concepts/rlm-environments-modal_repl.md),
+  [`PrimeREPL`](code/rlm/concepts/rlm-environments-prime_repl.md),
+  [`DaytonaREPL`](code/rlm/concepts/rlm-environments-daytona_repl.md),
+  [`E2BREPL`](code/rlm/concepts/rlm-environments-e2b_repl.md)) tiers sharing one
+  [`BaseEnv`](code/rlm/concepts/rlm-environments-base_env.md) contract, and a parallel training-time
+  re-implementation ([`RLMTrainEnv`](code/rlm/concepts/training-src-rlm_train-env.md)) used to produce the
+  paper's RLM-Qwen3-8B fine-tune. Pinned @ `caf0bffa1a`; 1,753 symbols across 121 modules (100%
+  represented, 191/191 classes), 21 code concept + 3 doc-concept pages.
+- [**Retrodict**](code/Retrodict/overview.md) — Ryan Brown's ARC-AGI-3 agent, the implementation behind
+  [`sources/retrodict.md`](sources/retrodict.md): plays each game via **retrodiction**
+  ([`arc3-runner`](code/Retrodict/concepts/arc3-runner.md)) — every hypothesis about a mechanic is replayed
+  against the recorded log in Python before it can spend a real action, and every planned action carries a
+  forward prediction ([`arc3-plan_parser`](code/Retrodict/concepts/arc3-plan_parser.md)) checked against
+  reality after it executes, halting the rest of the plan on a mismatch. The log
+  ([`arc3-logwriter`](code/Retrodict/concepts/arc3-logwriter.md)) is a frozen, replayable
+  `StepRecord` sequence — the same log a context-reset session rebuilds its entire understanding of the
+  game from, treating the log as ground truth its own live state can diverge from. Pinned @ `71672e8e5a`;
+  326 symbols across 14 modules (100% represented, 23/23 classes), 3 code concept + 2 doc-concept pages.
+  Structurally the closest relative in this wiki to
+  [`concepts/verification-independence.md`](concepts/verification-independence.md)'s "falsify cheaply
+  before committing expensively" pattern — one level down from an independent verifier process, applied
+  inside a single agent's own reasoning.
+- [**continual-harness**](code/continual-harness/overview.md) — Karten et al.'s own reference
+  implementation, the code behind [`sources/continual-harness.md`](sources/continual-harness.md): the
+  Refiner ([`agents-utils-harness_evolver`](code/continual-harness/concepts/agents-utils-harness_evolver.md)) —
+  four independently-fault-isolated CRUD passes (prompt, sub-agents, skills, memory) firing on an adaptive
+  schedule (every 25 steps for the first 200, then every 100), each pass asking a VLM to analyze a
+  trajectory window and apply create/update/retire edits **directly** against the corresponding
+  [`utils-stores-subagents`](code/continual-harness/concepts/utils-stores-subagents.md) store, with no
+  human review step and hard length/turn caps regardless of what the model proposed. Pinned @
+  `bbab97ad73`; 4,582 symbols across 137 modules (100% represented, 210/210 classes), 26 code concept + 2
+  doc-concept pages. Auto-discovery centrality-ranked toward Pokémon-environment plumbing (memory readers,
+  emulators, map stitchers) and missed the paper's actual headline mechanism entirely — `harness_evolver.py`
+  and `agents/tools/registry.py` were added as explicit config seeds after the fact, and even seeded, the
+  tool's per-packet symbol resolution fell back to generic top-importance discovery for both (a real
+  limitation, not a citation error) — both pages' claims were verified by reading the source directly
+  rather than trusting the packet.
+
+- [**prime-agent**](code/prime-agent/overview.md) — PrimeIntellect-ai's shipped coding/research agent,
+  the product behind [`sources/prime-agent-launch.md`](sources/prime-agent-launch.md): a TypeScript
+  reimplementation composing both [`rlm`](code/rlm/overview.md)'s and
+  [`continual-harness`](code/continual-harness/overview.md)'s mechanisms into one agent (built on
+  `earendil-works/pi`, not a fork of `badlogic/pi-mono` despite the README's acknowledgements link — see
+  [`rlm-continual-harness-composition`](code/prime-agent/doc-concepts/rlm-continual-harness-composition.md)).
+  `rlm(...)` becomes a real persistent-kernel spawn
+  ([`kernel/index.ts`](code/prime-agent/concepts/packages-coding-agent-src-core-kernel-index.ts.md)) and
+  `/refine` becomes an optimistic-concurrency, versioned, rollback-capable CRUD engine
+  ([`refinement.ts`](code/prime-agent/concepts/packages-coding-agent-src-core-refinement-refinement.ts.md))
+  — going further than the Python `HarnessEvolver` original by detecting concurrent modification before
+  applying an edit and deriving rollback as an inverse proposal rather than a stored snapshot. A daemon
+  process layer ([`AgentDaemon`](code/prime-agent/concepts/packages-coding-agent-src-modes-daemon-daemon-mode.ts.md),
+  [`DaemonSupervisor`](code/prime-agent/concepts/packages-coding-agent-src-modes-daemon-daemon-supervisor.ts.md))
+  keeps sessions (including RLM subagents) running across terminal disconnects and process crashes — see
+  [`long-running-agent-continuity`](code/prime-agent/doc-concepts/long-running-agent-continuity.md). Pinned
+  @ `a3b3e75349`; 21,067 symbols across 774 modules (100% represented, 1984/1984 classes), 25 code concept
+  + 3 doc-concept pages. TypeScript SCIP indexing required abandoning file-level sharding (incompatible
+  with this repo's project-reference `tsconfig.json`) for unsharded root-level indexing plus
+  `coverage_collapse` to scope the coverage report; the `refinement.ts` seed hit the same
+  seeded-symbol-resolution limitation as continual-harness's Python seeds and was verified by reading the
+  source directly rather than trusting the packet — confirmed accurate against source on spot-check.
 
 ## Cross-paper concepts (optional)
 Host vocabulary (`wiki/concepts/<key>.md`), wired by the `wikify-connect-repo` skill: each concept page
@@ -332,7 +447,7 @@ Seeded from the first papers pass (these will be the hook points where code silo
 - [`research-development-loop`](concepts/research-development-loop.md) — the explicit Research→Development split (RD-Agent).
 - [`closed-loop-experiment-design`](concepts/closed-loop-experiment-design.md) — feeding each result back into the next decision.
 - [`evolutionary-self-improvement`](concepts/evolutionary-self-improvement.md) — archive-based search vs. single-branch hill-climbing (DGM).
-- [`self-referential-code-rewriting`](concepts/self-referential-code-rewriting.md) — the agent edits the code that constitutes itself (DGM).
+- [`self-referential-code-rewriting`](concepts/self-referential-code-rewriting.md) — the agent edits the code that constitutes itself (DGM); the Continual Harness Refiner's CRUD self-editing of prompt/subagents/skills/memory (continual-harness, and its independent TypeScript reimplementation in prime-agent's `refinement.ts`) is a second, differently-mechanized instance of the same target class.
 - [`evolutionary-algorithm-discovery`](concepts/evolutionary-algorithm-discovery.md) — code-valued candidates + LLM-as-operator + execution-grounded selection (FunSearch → AlphaEvolve → openevolve).
 - [`mechanism-level-self-improvement`](concepts/mechanism-level-self-improvement.md) — optimizing the search *mechanism* that generates future candidates, not the task artifact (Bilevel Autoresearch); sits between artifact-level tuning and full self-referential scaffold rewriting.
 - [`llm-kernel-generation`](concepts/llm-kernel-generation.md) — agents authoring accelerator kernels judged by differential correctness + measured wall-clock time; the *optimization* vs. *enablement* split, and why the payoff is inversely proportional to ecosystem maturity (KernelEvolve, AlphaEvolve).

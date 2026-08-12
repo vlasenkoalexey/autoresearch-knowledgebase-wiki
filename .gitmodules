@@ -25,3 +25,15 @@
 [submodule "raw/code/openrsi"]
 	path = raw/code/openrsi
 	url = https://github.com/FrontisAI/OpenRSI
+[submodule "raw/code/rlm"]
+	path = raw/code/rlm
+	url = https://github.com/alexzhang13/rlm
+[submodule "raw/code/Retrodict"]
+	path = raw/code/Retrodict
+	url = https://github.com/ryanbbrown/Retrodict
+[submodule "raw/code/continual-harness"]
+	path = raw/code/continual-harness
+	url = https://github.com/sethkarten/continual-harness
+[submodule "raw/code/prime-agent"]
+	path = raw/code/prime-agent
+	url = https://github.com/PrimeIntellect-ai/prime-agent
